@@ -9,6 +9,47 @@ import numpy as np
 from .parameter import parse_parameter
 
 
+class NanoscopeImage(object):
+    """
+    Holds the data associated with a Nanoscope image.
+    """
+
+    def __init__(self, config, raw_data):
+        self.config = config
+        self.raw_data = raw_data
+        self.flat_data = None
+        self.converted_data = None
+        self.type = self.config.get('Image Data', 'Unknown')
+
+    @property
+    def data(self):
+        if self.converted_data is None:
+            if self.flat_data is None:
+                return self.raw_data
+            return self.flat_data
+        return self.converted_data
+
+    def flatten(self, order=1):
+        self.flat_data = np.array([])
+        for line in self.raw_data:
+            self.flat_data.append(self._flatten_scanline(line, order))
+
+    def convert(self):
+        pass
+
+    def process(self, order=1):
+        self.flatten(order)
+        self.convert()
+
+    def _flatten_scanline(self, data, order=1):
+        coefficients = np.polyfit(range(len(data)), data, order)
+        correction = np.array(
+            [sum([pow(i, n) * c
+            for n, c in enumerate(reversed(coefficients))])
+            for i in range(len(data))])
+        return data - correction
+
+
 class NanoscopeParser(object):
     """
     Handles reading and parsing Nanoscope files.
@@ -18,7 +59,7 @@ class NanoscopeParser(object):
         self.filename = filename
         self.encoding = encoding
         self.images = {}
-        self.config = {}
+        self.config = {'Images': {}}
 
     @property
     def height(self):
@@ -58,9 +99,9 @@ class NanoscopeParser(object):
     def read_image_data(self, image_type):
         if image_type not in ['Height', 'Amplitude', 'Phase']:
             raise ValueError('Unsupported image type {0}'.format(image_type))
-        if image_type not in self.images:
+        if image_type not in self.config['Images']:
             raise ValueError('Image type {0} not in file.'.format(image_type))
-        config = self.images[image_type]
+        config = self.config['Images'][image_type]
         with io.open(self.filename, 'rb') as f:
             f.seek(config['Data offset'])
             num = int(config['Data length'] / config['Bytes/pixel'])
@@ -68,7 +109,15 @@ class NanoscopeParser(object):
                 '<{0}h'.format(num), f.read(config['Data length'])))
             raw_data = raw_data.reshape((config['Number of lines'],
                                          config['Samps/line']))
-            return raw_data
+        self.images[image_type] = NanoscopeImage(self.config['Images'][image_type],
+                                                 raw_data)
+        return self.images[image_type]
+
+    def flatten_image(self, raw_data, order=1):
+        flat_data = []
+        for line in raw_data:
+            flat_data.append(self._flatten_scanline(line, order))
+        return np.array(flat_data)
 
     def _handle_parameter(self, parameter, f):
         if parameter.type == 'H':  # header
@@ -88,8 +137,8 @@ class NanoscopeParser(object):
                 return parameter
             if parameter.type == 'S':
                 if parameter.parameter == 'Image Data':
-                    image_config['Image Data'] = parameter.internal_designation
-                    self.images[parameter.internal_designation] = image_config
+                    image_config['Image Data'] = parameter.internal
+                    self.config['Images'][parameter.internal] = image_config
             else:
                 image_config[parameter.parameter] = parameter.hard_value
 

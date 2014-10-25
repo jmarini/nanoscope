@@ -88,15 +88,15 @@ class CiaoSelect(CiaoParameter):
     """
     type = 'S'
 
-    def __init__(self, parameter, internal_designation, external_designation):
+    def __init__(self, parameter, internal, external):
         self.parameter = parameter
-        self.internal_designation = internal_designation
-        self.external_designation = external_designation
+        self.internal = internal
+        self.external = external
 
     def __str__(self):
         return '{0}: [{1}] "{2}"'.format(self.parameter,
-                                         self.internal_designation,
-                                         self.external_designation)
+                                         self.internal,
+                                         self.external)
 
 
 class CiaoSectionHeader(CiaoParameter):

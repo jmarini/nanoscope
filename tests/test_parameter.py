@@ -211,23 +211,22 @@ class TestScaleParameter(unittest.TestCase):
 
 class TestSelectParameter(unittest.TestCase):
 
-    def test_only_internal_designation(self):
+    def test_only_internal(self):
         value = 'value'
         p = parameter.parse_parameter(r'\param: S [{0}] '.format(value))
-        self.assertEqual(value, p.internal_designation)
-        self.assertIsNone(p.external_designation)
+        self.assertEqual(value, p.internal)
+        self.assertIsNone(p.external)
 
-    def test_only_external_designation(self):
+    def test_only_external(self):
         value = 'value'
         p = parameter.parse_parameter(r'\param: S "{0}"'.format(value))
-        self.assertIsNone(p.internal_designation)
-        self.assertEqual(value, p.external_designation)
+        self.assertIsNone(p.internal)
+        self.assertEqual(value, p.external)
 
     def test_all(self):
-        internal_designation = 'internal_designation'
-        external_designation = 'external_designation'
+        internal = 'internal'
+        external = 'external'
         p = parameter.parse_parameter(
-            r'\param: S [{0}] "{1}"'.format(internal_designation,
-                                          external_designation))
-        self.assertEqual(internal_designation, p.internal_designation)
-        self.assertEqual(external_designation, p.external_designation)
+            r'\param: S [{0}] "{1}"'.format(internal, external))
+        self.assertEqual(internal, p.internal)
+        self.assertEqual(external, p.external)
