@@ -2,6 +2,7 @@
 from __future__ import division, unicode_literals
 
 import io
+import struct
 
 import numpy as np
 
@@ -44,24 +45,29 @@ class NanoscopeParser(object):
         """
         Read in the nanoscope file and convert the raw data.
         """
-        self._read_header()
-        for image in self.images:
-            self._read_image_data(image)
+        self.read_header()
+        if 'Height' in self.images:
+            self.height['Raw data'] = self._read_image_data(self.height)
+            self.height['Flattened data'] = np.array([])
+            for line in self.height['Raw data']:
+                self.height['Flattened data'].append(self._flatten_scanline(line))
 
-    def _read_header(self):
+    def read_header(self):
         with io.open(self.filename, 'r', encoding=self.encoding) as f:
             for line in f:
                 parameter = parse_parameter(line.rstrip('\n'))
-                self._handle_parameter(parameter, f)
+                if self._handle_parameter(parameter, f):
+                    return
 
     def _handle_parameter(self, parameter, f):
         if parameter.type == 'H':  # header
             if parameter.header == 'File list end':
-                return
-            elif parameter.header == 'Ciao image list':
-                self._handle_parameter(self._read_image_header(f), f)
+                return True
+            if parameter.header == 'Ciao image list':
+                return self._handle_parameter(self._read_image_header(f), f)
         elif parameter.type != 'S':
             self.config[parameter.parameter] = parameter.hard_value
+        return False
 
     def _read_image_header(self, f):
         image_config = {}
@@ -71,16 +77,25 @@ class NanoscopeParser(object):
                 return parameter
             if parameter.type == 'S':
                 if parameter.parameter == 'Image Data':
+                    image_config['Image Data'] = parameter.internal_designation
                     self.images[parameter.internal_designation] = image_config
             else:
                 image_config[parameter.parameter] = parameter.hard_value
 
     def _read_image_data(self, config):
-        pass
+        with io.open(self.filename, 'rb') as f:
+            f.seek(config['Data offset'])
+            num = int(config['Data length'] / config['Bytes/pixel'])
+            raw_data = np.array(struct.unpack_from(
+                '<{0}h'.format(num), f.read(config['Data length'])))
+            raw_data = raw_data.reshape((config['Number of lines'],
+                                         config['Samps/line']))
+            return raw_data
 
-    def _flatten_scanline(self, data):
-        a, b = np.polyfit(range(len(data)), data, 1)
-        out = []
-        for i, value in enumerate(data):
-            out.append(value - (i * a + b))
-        return out
+    def _flatten_scanline(self, data, order=1):
+        coefficients = np.polyfit(range(len(data)), data, order)
+        correction = np.array(
+            [sum([pow(i, n) * c
+            for n, c in enumerate(reversed(coefficients))])
+            for i in range(len(data))])
+        return data - correction
