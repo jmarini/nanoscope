@@ -157,7 +157,7 @@ class TestNanoscopeParser(unittest.TestCase):
                 'Tip y width correction factor': 1,
                 'Tip x width correction factor sigma': 1,
                 'Tip y width correction factor sigma': 1,
-                'Z magnify': 0.4615211 ,
+                'Z magnify': 0.4615211,
                 'Z scale': 0.2166748,
                 'Z offset': 0,
             }
