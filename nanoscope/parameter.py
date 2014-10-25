@@ -116,13 +116,13 @@ def parse_parameter(string):
     if parameter_type == 'V':  # value
         value_regex = (r'(?:\[(?P<soft_scale>[^\[\]]*)\] )?'
                        r'(?:\((?P<hard_scale>[^\(\)]*)\) )?'
-                       r'(?P<hard_value>.*)')
+                       r'(?P<hard_value>[^\[\]\(\)]*)')
         vm = re.match(value_regex, value)
         return CiaoValue(m.group('parameter'), vm.group('soft_scale'),
                          vm.group('hard_scale'), vm.group('hard_value'))
     elif parameter_type == 'C':  # scale
         scale_regex = (r'(?:\[(?P<soft_scale>[^\[\]]*)\] )?'
-                       r'(?P<hard_value>.*)')
+                       r'(?P<hard_value>[^\[\]]*)')
         cm = re.match(scale_regex, value)
         return CiaoScale(m.group('parameter'), cm.group('soft_scale'),
                          cm.group('hard_value'))
