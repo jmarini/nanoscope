@@ -20,7 +20,7 @@ class TestNanoscopeParser(unittest.TestCase):
             'Navigator note': None,
             'Engage X Pos': -19783.4,
             'Engage Y Pos': -42151.3,
-            'Images': {},
+            '_Images': {},
         }
         p = NanoscopeParser('./tests/files/header_single_section.txt', 'utf-8')
         p.read_header()
@@ -46,7 +46,7 @@ class TestNanoscopeParser(unittest.TestCase):
             'Zoom System': 'Motorized',
             'Scanner file': '1965g.scn',
             'Profile name': 'default',
-            'Images': {},
+            '_Images': {},
         }
         p = NanoscopeParser('./tests/files/header_multiple_sections.txt', 'utf-8')
         p.read_header()
@@ -63,7 +63,7 @@ class TestNanoscopeParser(unittest.TestCase):
             'Navigator note': None,
             'Engage X Pos': -19783.4,
             'Engage Y Pos': -42151.3,
-            'Images': {
+            '_Images': {
                 'Height': {
                     'Data offset': 40960,
                     'Data length': 524288,
@@ -109,7 +109,7 @@ class TestNanoscopeParser(unittest.TestCase):
             'Navigator note': None,
             'Engage X Pos': -19783.4,
             'Engage Y Pos': -42151.3,
-            'Images': {
+            '_Images': {
                 'Height': {
                     'Data offset': 40960,
                     'Data length': 524288,
