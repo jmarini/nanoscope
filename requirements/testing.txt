@@ -1,0 +1,6 @@
+-r base.txt
+
+coverage
+pep8
+flake8
+pep8-naming
