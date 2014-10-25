@@ -178,3 +178,50 @@ class TestValueParameter(unittest.TestCase):
         self.assertEqual(soft_scale, p.soft_scale)
         self.assertEqual(hard_scale, p.hard_scale)
         self.assertEqual(value, p.hard_value)
+
+
+class TestScaleParameter(unittest.TestCase):
+
+    def test_only_soft_scale(self):
+        value = 'value'
+        p = parameter.parse_parameter(r'\param: C [{0}] '.format(value))
+        self.assertEqual(value, p.soft_scale)
+        self.assertIsNone(p.hard_value)
+
+    def test_only_hard_value(self):
+        value = 'value'
+        p = parameter.parse_parameter(r'\param: C {0}'.format(value))
+        self.assertIsNone(p.soft_scale)
+        self.assertEqual(value, p.hard_value)
+
+    def test_all(self):
+        soft_scale = 'soft_scale'
+        value = 'value'
+        p = parameter.parse_parameter(
+            r'\param: C [{0}] {1}'.format(soft_scale, value))
+        self.assertEqual(soft_scale, p.soft_scale)
+        self.assertEqual(value, p.hard_value)
+
+
+class TestSelectParameter(unittest.TestCase):
+
+    def test_only_internal_designation(self):
+        value = 'value'
+        p = parameter.parse_parameter(r'\param: S [{0}] '.format(value))
+        self.assertEqual(value, p.internal_designation)
+        self.assertIsNone(p.external_designation)
+
+    def test_only_external_designation(self):
+        value = 'value'
+        p = parameter.parse_parameter(r'\param: S "{0}"'.format(value))
+        self.assertIsNone(p.internal_designation)
+        self.assertEqual(value, p.external_designation)
+
+    def test_all(self):
+        internal_designation = 'internal_designation'
+        external_designation = 'external_designation'
+        p = parameter.parse_parameter(
+            r'\param: S [{0}] "{1}"'.format(internal_designation,
+                                          external_designation))
+        self.assertEqual(internal_designation, p.internal_designation)
+        self.assertEqual(external_designation, p.external_designation)
