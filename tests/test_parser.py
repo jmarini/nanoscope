@@ -181,6 +181,9 @@ class TestNanoscopeParser(unittest.TestCase):
         self.assertListEqual([-8417, -8411, -8404, -8396, -8387],
                              list(height.data[:5, 0]))
 
+
+class TestNanoscopeImage(unittest.TestCase):
+
     def test_flatten_height_data(self):
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
@@ -190,11 +193,27 @@ class TestNanoscopeParser(unittest.TestCase):
             [-21, -20, -17, -16, -14],
             [-21, -20, -17, -15, -12],
             [-22, -18, -15, -13, -11],
-            [-21, -17, -13, -12, -9]
+            [-21, -17, -13, -12, -9],
         ]
         data = height.flatten(1)
         for line, flat in zip(data, flattened):
             self.assertListEqual(flat, list(np.round(line[:5], 0)))
+
+    def test_convert_height_data(self):
+        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
+        p.read_header()
+        height = p.read_image_data('Height')
+        height.flatten(1)
+        converted = [
+            [-1.64729, -1.56059, -1.47389, -1.38719, -1.21379],
+            [-1.82069, -1.73399, -1.47389, -1.38719, -1.21379],
+            [-1.82069, -1.73399, -1.47389, -1.30049, -1.04039],
+            [-1.90749, -1.56059, -1.30049, -1.12709, -0.95369],
+            [-1.82069, -1.47389, -1.12709, -1.04039, -0.78030],
+        ]
+        data = height.convert()
+        for l, r in zip(np.array(converted).flatten(), data[:5, :5].flatten()):
+            self.assertAlmostEqual(l, r, delta=0.01)
 
     # def test_read_amplitude_data_multiple_images(self):
     #     p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')

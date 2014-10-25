@@ -14,12 +14,16 @@ class NanoscopeImage(object):
     Holds the data associated with a Nanoscope image.
     """
 
-    def __init__(self, config, raw_data):
-        self.config = config
+    def __init__(self, image_type, raw_data, sensitivity, bytes_per_pixel,
+                 magnify, scale):
+        self.sensitivity = sensitivity
+        self.bytes_per_pixel = bytes_per_pixel
+        self.magnify = magnify
+        self.scale = scale
         self.raw_data = raw_data
         self.flat_data = None
         self.converted_data = None
-        self.type = self.config.get('Image Data', 'Unknown')
+        self.type = image_type
 
     @property
     def data(self):
@@ -33,11 +37,17 @@ class NanoscopeImage(object):
         self.flat_data = []
         for line in self.raw_data:
             self.flat_data.append(self._flatten_scanline(line, order))
-        return np.array(self.flat_data)
+        self.flat_data = np.round(self.flat_data, 0)
+        return self.flat_data
 
     def convert(self):
-        self.converted_data = []
-        return np.array(self.converted_data)
+        if self.flat_data is None:
+            self.flat_data = self.raw_data
+        bytes_scaling = pow(2, 8 * self.bytes_per_pixel)
+        func = np.vectorize(
+            lambda v: v * self.sensitivity * self.scale / bytes_scaling)
+        self.converted_data = func(self.flat_data)
+        return self.converted_data
 
     def process(self, order=1):
         self.flatten(order)
@@ -111,8 +121,14 @@ class NanoscopeParser(object):
                 '<{0}h'.format(num), f.read(config['Data length'])))
             raw_data = raw_data.reshape((config['Number of lines'],
                                          config['Samps/line']))
-        self.images[image_type] = NanoscopeImage(self.config['_Images'][image_type],
-                                                 raw_data)
+        self.images[image_type] = NanoscopeImage(
+            image_type,
+            raw_data,
+            self.config['Sens. Zscan'],
+            self.config['_Images'][image_type]['Bytes/pixel'],
+            self.config['_Images'][image_type]['Z magnify'],
+            self.config['_Images'][image_type]['Z scale']
+        )
         return self.images[image_type]
 
     def _handle_parameter(self, parameter, f):
