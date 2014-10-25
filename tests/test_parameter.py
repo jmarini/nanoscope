@@ -46,25 +46,31 @@ class TestParameterParsing(unittest.TestCase):
     def test_detect_simple(self):
         p = parameter.parse_parameter(r'\param: ')
         self.assertIsInstance(p, parameter.CiaoParameter)
-        self.assertEqual('', p.parameter_type)
+        self.assertEqual('P', p.type)
         self.assertIsNone(p.hard_value)
 
     def test_detect_value(self):
         p = parameter.parse_parameter(r'\param: V ')
         self.assertIsInstance(p, parameter.CiaoValue)
-        self.assertEqual('V', p.parameter_type)
+        self.assertEqual('V', p.type)
         self.assertIsNone(p.hard_value)
 
     def test_detect_scale(self):
         p = parameter.parse_parameter(r'\param: C ')
         self.assertIsInstance(p, parameter.CiaoScale)
-        self.assertEqual('C', p.parameter_type)
+        self.assertEqual('C', p.type)
         self.assertIsNone(p.hard_value)
 
     def test_detect_select(self):
         p = parameter.parse_parameter(r'\param: S ')
         self.assertIsInstance(p, parameter.CiaoSelect)
-        self.assertEqual('S', p.parameter_type)
+        self.assertEqual('S', p.type)
+
+    def test_detect_header(self):
+        p = parameter.parse_parameter(r'\*param')
+        self.assertIsInstance(p, parameter.CiaoSectionHeader)
+        self.assertEqual('H', p.type)
+        self.assertEqual('param', p.header)
 
 
 class TestSimpleParameter(unittest.TestCase):

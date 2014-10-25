@@ -9,7 +9,7 @@ class CiaoParameter(object):
     """
     Parent class for generic values from the header.
     """
-    parameter_type = ''
+    type = 'P'
 
     def __init__(self, parameter, hard_value):
         self.parameter = parameter
@@ -53,7 +53,7 @@ class CiaoValue(CiaoParameter):
     """
     Represents a Ciao value object.
     """
-    parameter_type = 'V'
+    type = 'V'
 
     def __init__(self, parameter, soft_scale, hard_scale, hard_value):
         self.parameter = parameter
@@ -70,7 +70,7 @@ class CiaoScale(CiaoParameter):
     """
     Represents a Ciao scale object.
     """
-    parameter_type = 'C'
+    type = 'C'
 
     def __init__(self, parameter, soft_scale, hard_value):
         self.parameter = parameter
@@ -86,7 +86,7 @@ class CiaoSelect(CiaoParameter):
     """
     Represents a Ciao select object.
     """
-    parameter_type = 'S'
+    type = 'S'
 
     def __init__(self, parameter, internal_designation, external_designation):
         self.parameter = parameter
@@ -99,11 +99,28 @@ class CiaoSelect(CiaoParameter):
                                          self.external_designation)
 
 
+class CiaoSectionHeader(CiaoParameter):
+    """
+    Represents a Ciao section header.
+    """
+    type = 'H'
+
+    def __init__(self, header):
+        self.header = header
+
+    def __str__(self):
+        return self.header
+
+
 def parse_parameter(string):
     """
     Factory function that parses the parameter string and creates the
     appropriate CiaoParameter object.
     """
+    header_match = re.match(r'\\\*(?P<header>.+)', string)
+    if header_match is not None:
+        return CiaoSectionHeader(header_match.group('header'))
+
     regex = re.compile(r'\\(?P<ciao>@?)(?:(?P<group>[0-9]+):)?'
                        r'(?P<parameter>[^:]+): '
                        r'(?:(?P<type>[VCS]) )?(?P<value>.*)')
