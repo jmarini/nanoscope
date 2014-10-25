@@ -34,9 +34,7 @@ class NanoscopeImage(object):
         return self.converted_data
 
     def flatten(self, order=1):
-        self.flat_data = []
-        for line in self.raw_data:
-            self.flat_data.append(self._flatten_scanline(line, order))
+        self.flat_data = [self._flatten_scanline(line, order) for line in self.raw_data]
         self.flat_data = np.round(self.flat_data, 0)
         return self.flat_data
 
@@ -52,6 +50,15 @@ class NanoscopeImage(object):
     def process(self, order=1):
         self.flatten(order)
         self.convert()
+        return self.converted_data
+
+    def to_pixels(self, get_color):
+        if self.converted_data is None:
+            self.converted_data = self.raw_data
+        pixels = []
+        for line in self.converted_data:
+            pixels.append([get_color(v) for v in line])
+        return np.array(pixels, dtype=np.uint8)
 
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)

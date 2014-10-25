@@ -215,6 +215,12 @@ class TestNanoscopeImage(unittest.TestCase):
         for l, r in zip(np.array(converted).flatten(), data[:5, :5].flatten()):
             self.assertAlmostEqual(l, r, delta=0.01)
 
+    def test_colors_height(self):
+        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
+        p.read_header()
+        p.read_image_data('Height')
+        p.height.process(1)
+
     # def test_read_amplitude_data_multiple_images(self):
     #     p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
     #     p.read_header()
