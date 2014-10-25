@@ -175,7 +175,7 @@ class TestNanoscopeParser(unittest.TestCase):
     def test_read_height_data_multiple_images(self):
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
-        height = p._read_image_data(p.images['Height'])
+        height = p.read_image_data('Height')
         self.assertListEqual([-8417, -8416, -8414, -8413, -8411],
                               list(height[0, :5]))
         self.assertListEqual([-8417, -8411, -8404, -8396, -8387],
@@ -184,7 +184,7 @@ class TestNanoscopeParser(unittest.TestCase):
     def test_flatten_height_data(self):
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
-        height = p._read_image_data(p.images['Height'])
+        height = p.read_image_data('Height')
         flattened = [
             [-19, -18, -17, -16, -14],
             [-21, -20, -17, -16, -14],
@@ -199,7 +199,7 @@ class TestNanoscopeParser(unittest.TestCase):
     # def test_read_amplitude_data_multiple_images(self):
     #     p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
     #     p.read_header()
-    #     amplitude = p._read_image_data(p.images['Amplitude'])
+    #     amplitude = p.read_image_data('Amplitude')
     #     self.assertListEqual([-2770, -3416, -2400, -3231, -4708],
     #                          list(amplitude[0, :5]))
     #     self.assertListEqual([-2770, -2585, -3877, -6462, -8677],
