@@ -30,12 +30,14 @@ class NanoscopeImage(object):
         return self.converted_data
 
     def flatten(self, order=1):
-        self.flat_data = np.array([])
+        self.flat_data = []
         for line in self.raw_data:
             self.flat_data.append(self._flatten_scanline(line, order))
+        return np.array(self.flat_data)
 
     def convert(self):
-        pass
+        self.converted_data = []
+        return np.array(self.converted_data)
 
     def process(self, order=1):
         self.flatten(order)
@@ -113,12 +115,6 @@ class NanoscopeParser(object):
                                                  raw_data)
         return self.images[image_type]
 
-    def flatten_image(self, raw_data, order=1):
-        flat_data = []
-        for line in raw_data:
-            flat_data.append(self._flatten_scanline(line, order))
-        return np.array(flat_data)
-
     def _handle_parameter(self, parameter, f):
         if parameter.type == 'H':  # header
             if parameter.header == 'File list end':
@@ -141,11 +137,3 @@ class NanoscopeParser(object):
                     self.config['_Images'][parameter.internal] = image_config
             else:
                 image_config[parameter.parameter] = parameter.hard_value
-
-    def _flatten_scanline(self, data, order=1):
-        coefficients = np.polyfit(range(len(data)), data, order)
-        correction = np.array(
-            [sum([pow(i, n) * c
-            for n, c in enumerate(reversed(coefficients))])
-            for i in range(len(data))])
-        return data - correction

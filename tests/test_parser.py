@@ -192,7 +192,7 @@ class TestNanoscopeParser(unittest.TestCase):
             [-22, -18, -15, -13, -11],
             [-21, -17, -13, -12, -9]
         ]
-        data = p.flatten_image(height.data[:5], 1)
+        data = height.flatten(1)
         for line, flat in zip(data, flattened):
             self.assertListEqual(flat, list(np.round(line[:5], 0)))
 
