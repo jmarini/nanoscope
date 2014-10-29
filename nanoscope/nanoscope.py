@@ -53,13 +53,24 @@ class NanoscopeImage(object):
         self.convert()
         return self.converted_data
 
-    def to_pixels(self, get_color):
+    def to_pixels(self):
+        colors = {
+            'r': lambda p: min(255, max(0, np.floor(p * (10200 / 37) - (765 / 37)))),
+            'g': lambda p: min(255, max(0, np.floor(p * (30600 / 73) - (11985 / 73)))),
+            'b': lambda p: min(255, max(0, np.floor(p * (6800 / 9) - (4505 / 9)))),
+        }
+        get_color = (lambda v:
+            np.array([colors[c]((v + (self.height_scale / 2)) /
+                                self.height_scale) for c in 'rgb']))
         if self.converted_data is None:
             self.converted_data = self.raw_data
-        pixels = []
-        for line in self.converted_data:
-            pixels.append([get_color(v) for v in line])
-        return np.array(pixels, dtype=np.uint8)
+
+        data = []
+        for row in reversed(self.converted_data):
+            data.append([])
+            for col in row:
+                data[-1].append(get_color(col))
+        return np.array(data, dtype=np.uint8)
 
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)

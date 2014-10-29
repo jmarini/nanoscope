@@ -238,3 +238,30 @@ class TestNanoscopeImage(unittest.TestCase):
                 self.assertAlmostEqual(ll, rr, delta=0.05,
                     msg='@ ({0}, {1}) '
                         '0x{2:X}'.format(i, j, get_loc(i, j)))
+
+    def test_to_pixels_data(self):
+        csv_data = np.loadtxt('./tests/files/reference_pixels.csv',
+                              delimiter=',', dtype=np.uint8)
+
+        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
+        p.read_header()
+        p.read_image_data('Height')
+        p.height.flatten(1)
+        p.height.convert()
+        data = p.height.to_pixels()
+
+        num_lines = p.config['_Images']['Height']['Number of lines']
+        num_columns = p.config['_Images']['Height']['Samps/line']
+        data_offset = p.config['_Images']['Height']['Data offset']
+        bytes_per_pixel = p.config['_Images']['Height']['Bytes/pixel']
+        csv_data = csv_data.reshape(num_lines, num_columns, 3)
+
+        get_loc = (lambda i, j:
+            data_offset + num_columns * bytes_per_pixel * j +
+            i * bytes_per_pixel)
+        for j, (l, r) in enumerate(zip(data, csv_data)):
+            for i, (ll, rr) in enumerate(zip(l, r)):
+                for lll, rrr in zip(ll, rr):
+                    self.assertAlmostEqual(int(lll), int(rrr), delta=5,
+                        msg='@ ({0}, {1}) '
+                            '0x{2:X}'.format(i, j, get_loc(i, j)))
