@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name='Nanoscope',
-    version='1.0.0',
+    version='0.8.0',
     url='',
     author='Jonathan Marini',
     author_email='jmarini@ieee.org',
