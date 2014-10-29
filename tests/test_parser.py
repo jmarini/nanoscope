@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import csv
 import datetime
 import unittest
 
@@ -173,59 +174,78 @@ class TestNanoscopeParser(unittest.TestCase):
         self.assertDictEqual(data, p.config)
 
     def test_read_height_data_multiple_images(self):
+        with open('./tests/files/reference_raw.csv', 'r') as f:
+            reader = csv.reader(f)
+            csv_raw = []
+            for row in reader:
+                csv_raw.append([])
+                for col in row:
+                    csv_raw[-1].append(int(col))
+            csv_data = np.array(csv_raw)
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
         height = p.read_image_data('Height')
-        self.assertListEqual([-8417, -8416, -8414, -8413, -8411],
-                              list(height.data[0, :5]))
-        self.assertListEqual([-8417, -8411, -8404, -8396, -8387],
-                             list(height.data[:5, 0]))
+        get_loc = (lambda i, j:
+            p.config['_Images']['Height']['Data offset'] +
+            p.config['_Images']['Height']['Samps/line'] *
+            p.config['_Images']['Height']['Bytes/pixel'] * j + i *
+            p.config['_Images']['Height']['Bytes/pixel'])
+        for j, (l, r) in enumerate(zip(height.data, csv_data)):
+            for i, (ll, rr) in enumerate(zip(l, r)):
+                self.assertEqual(ll, rr,
+                    msg='@ ({0}, {1}) '
+                        '0x{2:X}'.format(i, j, get_loc(i, j)))
 
 
 class TestNanoscopeImage(unittest.TestCase):
 
     def test_flatten_height_data(self):
-        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-        p.read_header()
-        height = p.read_image_data('Height')
-        flattened = [
-            [-19, -18, -17, -16, -14],
-            [-21, -20, -17, -16, -14],
-            [-21, -20, -17, -15, -12],
-            [-22, -18, -15, -13, -11],
-            [-21, -17, -13, -12, -9],
-        ]
-        data = height.flatten(1)
-        for line, flat in zip(data, flattened):
-            self.assertListEqual(flat, list(np.round(line[:5], 0)))
+        with open('./tests/files/reference_flat.csv') as f:
+            reader = csv.reader(f)
+            csv_raw = []
+            for row in reader:
+                csv_raw.append([])
+                for col in row:
+                    csv_raw[-1].append(float(col))
+            csv_data = np.array(csv_raw)
 
-    def test_convert_height_data(self):
-        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-        p.read_header()
-        height = p.read_image_data('Height')
-        height.flatten(1)
-        converted = [
-            [-1.64729, -1.56059, -1.47389, -1.38719, -1.21379],
-            [-1.82069, -1.73399, -1.47389, -1.38719, -1.21379],
-            [-1.82069, -1.73399, -1.47389, -1.30049, -1.04039],
-            [-1.90749, -1.56059, -1.30049, -1.12709, -0.95369],
-            [-1.82069, -1.47389, -1.12709, -1.04039, -0.78030],
-        ]
-        data = height.convert()
-        for l, r in zip(np.array(converted).flatten(), data[:5, :5].flatten()):
-            self.assertAlmostEqual(l, r, delta=0.01)
-
-    def test_colors_height(self):
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
         p.read_image_data('Height')
-        p.height.process(1)
+        data = p.height.flatten(1)
+        get_loc = (lambda i, j:
+            p.config['_Images']['Height']['Data offset'] +
+            p.config['_Images']['Height']['Samps/line'] *
+            p.config['_Images']['Height']['Bytes/pixel'] * j + i *
+            p.config['_Images']['Height']['Bytes/pixel'])
+        for j, (l, r) in enumerate(zip(data, csv_data)):
+            for i, (ll, rr) in enumerate(zip(l, r)):
+                self.assertEqual(ll, rr,
+                    msg='@ ({0}, {1}) '
+                        '0x{2:X}'.format(i, j, get_loc(i, j)))
 
-    # def test_read_amplitude_data_multiple_images(self):
-    #     p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-    #     p.read_header()
-    #     amplitude = p.read_image_data('Amplitude')
-    #     self.assertListEqual([-2770, -3416, -2400, -3231, -4708],
-    #                          list(amplitude.data[0, :5]))
-    #     self.assertListEqual([-2770, -2585, -3877, -6462, -8677],
-    #                          list(amplitude.data[:5, 0]))
+    def test_convert_height_data(self):
+        with open('./tests/files/reference_converted.csv') as f:
+            reader = csv.reader(f)
+            csv_raw = []
+            for row in reader:
+                csv_raw.append([])
+                for col in row:
+                    csv_raw[-1].append(float(col))
+            csv_data = np.array(csv_raw)
+
+        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
+        p.read_header()
+        p.read_image_data('Height')
+        p.height.flatten(1)
+        data = p.height.convert()
+        get_loc = (lambda i, j:
+            p.config['_Images']['Height']['Data offset'] +
+            p.config['_Images']['Height']['Samps/line'] *
+            p.config['_Images']['Height']['Bytes/pixel'] * j + i *
+            p.config['_Images']['Height']['Bytes/pixel'])
+        for j, (l, r) in enumerate(zip(data, csv_data)):
+            for i, (ll, rr) in enumerate(zip(l, r)):
+                self.assertAlmostEqual(ll, rr, delta=0.05,
+                    msg='@ ({0}, {1}) '
+                        '0x{2:X}'.format(i, j, get_loc(i, j)))
