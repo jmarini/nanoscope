@@ -24,6 +24,7 @@ class NanoscopeImage(object):
         self.flat_data = None
         self.converted_data = None
         self.type = image_type
+        self.height_scale = self.sensitivity * self.magnify * self.scale
 
     @property
     def data(self):

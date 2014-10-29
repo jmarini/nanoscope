@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import csv
 import datetime
 import unittest
 
@@ -173,15 +172,17 @@ class TestNanoscopeParser(unittest.TestCase):
         p.read_header()
         self.assertDictEqual(data, p.config)
 
+    def test_height_scale(self):
+        p = NanoscopeParser('./tests/files/full_multiple_images.txt')
+        p.read_header()
+        sensitivity = p.config['Sens. Zscan']
+        magnify = p.config['_Images']['Height']['Z magnify']
+        scale = p.config['_Images']['Height']['Z scale']
+        self.assertAlmostEqual(15.0, sensitivity * magnify * scale, delta=0.01)
+
     def test_read_height_data_multiple_images(self):
-        with open('./tests/files/reference_raw.csv', 'r') as f:
-            reader = csv.reader(f)
-            csv_raw = []
-            for row in reader:
-                csv_raw.append([])
-                for col in row:
-                    csv_raw[-1].append(int(col))
-            csv_data = np.array(csv_raw)
+        csv_data = np.loadtxt('./tests/files/reference_raw.csv',
+                              delimiter=',')
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
         height = p.read_image_data('Height')
@@ -200,14 +201,8 @@ class TestNanoscopeParser(unittest.TestCase):
 class TestNanoscopeImage(unittest.TestCase):
 
     def test_flatten_height_data(self):
-        with open('./tests/files/reference_flat.csv') as f:
-            reader = csv.reader(f)
-            csv_raw = []
-            for row in reader:
-                csv_raw.append([])
-                for col in row:
-                    csv_raw[-1].append(float(col))
-            csv_data = np.array(csv_raw)
+        csv_data = np.loadtxt('./tests/files/reference_flat.csv',
+                              delimiter=',')
 
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
@@ -225,14 +220,8 @@ class TestNanoscopeImage(unittest.TestCase):
                         '0x{2:X}'.format(i, j, get_loc(i, j)))
 
     def test_convert_height_data(self):
-        with open('./tests/files/reference_converted.csv') as f:
-            reader = csv.reader(f)
-            csv_raw = []
-            for row in reader:
-                csv_raw.append([])
-                for col in row:
-                    csv_raw[-1].append(float(col))
-            csv_data = np.array(csv_raw)
+        csv_data = np.loadtxt('./tests/files/reference_converted.csv',
+                              delimiter=',')
 
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
         p.read_header()
