@@ -53,10 +53,8 @@ class NanoscopeImage(object):
         """
         if self.flat_data is None:
             self.flat_data = self.raw_data
-        bytes_scaling = pow(2, 8 * self.bytes_per_pixel)
-        func = np.vectorize(
-            lambda v: v * self.sensitivity * self.scale / bytes_scaling)
-        self.converted_data = func(self.flat_data)
+        value = self.sensitivity * self.scale / pow(2, 8 * self.bytes_per_pixel)
+        self.converted_data = self.flat_data * value
         return self
 
     def colorize(self, colortable=12):
@@ -105,8 +103,7 @@ class NanoscopeImage(object):
         """
         Returns the RMS roughness of the data.
         """
-        return np.sqrt(np.sum(np.vectorize(
-            lambda v: v * v)(self.data)) / self.data.size)
+        return np.sqrt(np.sum(np.square(self.data)) / self.data.size)
 
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)
