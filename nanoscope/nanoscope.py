@@ -5,6 +5,7 @@ import io
 import struct
 
 import numpy as np
+import six
 
 from .parameter import parse_parameter
 
@@ -51,11 +52,11 @@ class NanoscopeImage(object):
     def to_pixels(self):
         colors = {
             'r': (lambda p: np.clip(np.round(
-                    p * (10200 / 37) - (765 / 37)), 0, 255)),
+                p * (10200 / 37) - (765 / 37)), 0, 255)),
             'g': (lambda p: np.clip(np.round(
-                    p * (30600 / 73) - (11985 / 73)), 0, 255)),
+                p * (30600 / 73) - (11985 / 73)), 0, 255)),
             'b': (lambda p: np.clip(np.round(
-                    p * (6800 / 9) - (4505 / 9)), 0, 255)),
+                p * (6800 / 9) - (4505 / 9)), 0, 255)),
         }
         get_color = (lambda v:
             np.array([colors[c]((v + (self.height_scale / 2)) /
@@ -154,6 +155,11 @@ class NanoscopeParser(object):
             self.config['_Images'][image_type]['Z scale']
         )
         return self.images[image_type]
+
+    def read_file(self):
+        self.read_header()
+        for image_type in six.iterkeys(self.config['_Images']):
+            self.read_image_data(image_type)
 
     def _handle_parameter(self, parameter, f):
         if parameter.type == 'H':  # header
