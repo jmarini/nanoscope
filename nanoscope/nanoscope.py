@@ -35,9 +35,9 @@ class NanoscopeImage(object):
         return self.converted_data
 
     def flatten(self, order=1):
-        self.flat_data = [self._flatten_scanline(line, order) for line in self.raw_data]
-        self.flat_data = np.round(self.flat_data, 0)
-        return self.flat_data
+        self.flat_data = np.round([self._flatten_scanline(line, order)
+                                   for line in self.raw_data])
+        return self
 
     def convert(self):
         if self.flat_data is None:
@@ -46,24 +46,22 @@ class NanoscopeImage(object):
         func = np.vectorize(
             lambda v: v * self.sensitivity * self.scale / bytes_scaling)
         self.converted_data = func(self.flat_data)
-        return self.converted_data
-
-    def process(self, order=1):
-        self.flatten(order)
-        self.convert()
-        return self.converted_data
+        return self
 
     def to_pixels(self):
         colors = {
-            'r': lambda p: min(255, max(0, np.floor(p * (10200 / 37) - (765 / 37)))),
-            'g': lambda p: min(255, max(0, np.floor(p * (30600 / 73) - (11985 / 73)))),
-            'b': lambda p: min(255, max(0, np.floor(p * (6800 / 9) - (4505 / 9)))),
+            'r': (lambda p: np.clip(np.round(
+                    p * (10200 / 37) - (765 / 37)), 0, 255)),
+            'g': (lambda p: np.clip(np.round(
+                    p * (30600 / 73) - (11985 / 73)), 0, 255)),
+            'b': (lambda p: np.clip(np.round(
+                    p * (6800 / 9) - (4505 / 9)), 0, 255)),
         }
         get_color = (lambda v:
             np.array([colors[c]((v + (self.height_scale / 2)) /
                                 self.height_scale) for c in 'rgb']))
         if self.converted_data is None:
-            self.converted_data = self.raw_data
+            self.converted_data = self.data
 
         data = []
         for row in reversed(self.converted_data):
@@ -71,6 +69,13 @@ class NanoscopeImage(object):
             for col in row:
                 data[-1].append(get_color(col))
         return np.array(data, dtype=np.uint8)
+
+    def zrange(self):
+        return self.data.ptp()
+
+    def rms(self):
+        return np.sqrt(np.sum(np.vectorize(
+            lambda v: v * v)(self.data)) / self.data.size)
 
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)
