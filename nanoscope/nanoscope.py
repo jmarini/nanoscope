@@ -2,7 +2,6 @@
 from __future__ import division, unicode_literals
 
 import io
-import struct
 
 import numpy as np
 import six
@@ -176,8 +175,8 @@ class NanoscopeParser(object):
         with io.open(self.filename, 'rb') as f:
             f.seek(config['Data offset'])
             num = int(config['Data length'] / config['Bytes/pixel'])
-            raw_data = np.array(struct.unpack_from(
-                '<{0}h'.format(num), f.read(config['Data length'])))
+            raw_data = np.fromstring(f.read(config['Data length']),
+                                     dtype='<{0}h'.format(num))
             raw_data = raw_data.reshape((config['Number of lines'],
                                          config['Samps/line']))
         self.images[image_type] = NanoscopeImage(
