@@ -236,14 +236,14 @@ class TestNanoscopeImage(unittest.TestCase):
                     msg='@ ({0}, {1}) '
                         '0x{2:X}'.format(i, j, self.get_loc(i, j)))
 
-    def test_to_pixels_data(self):
+    def test_colorize_data(self):
         expected = np.loadtxt('./tests/files/reference_pixels.csv',
                               delimiter=',', dtype=np.uint8)
         num_lines = self.parser.config['_Images']['Height']['Number of lines']
         num_columns = self.parser.config['_Images']['Height']['Samps/line']
         expected = expected.reshape(num_lines, num_columns, 3)
 
-        actual = self.height.to_pixels()
+        actual = self.height.colorize()
 
         for j, (l, r) in enumerate(zip(actual, expected)):
             for i, (ll, rr) in enumerate(zip(l, r)):

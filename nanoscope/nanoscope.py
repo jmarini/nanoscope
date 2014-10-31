@@ -29,6 +29,9 @@ class NanoscopeImage(object):
 
     @property
     def data(self):
+        """
+        Returns the most processed form of the data.
+        """
         if self.converted_data is None:
             if self.flat_data is None:
                 return self.raw_data
@@ -36,11 +39,19 @@ class NanoscopeImage(object):
         return self.converted_data
 
     def flatten(self, order=1):
+        """
+        Flattens the raw data, by fitting each scanline to a polynomial with
+        the order specified and subtracting that fit from the raw data.
+        """
         self.flat_data = np.round([self._flatten_scanline(line, order)
                                    for line in self.raw_data])
         return self
 
     def convert(self):
+        """
+        Converts the raw data into data with the proper units for that image
+        type (i.e. nm for Height, V for Amplitude).
+        """
         if self.flat_data is None:
             self.flat_data = self.raw_data
         bytes_scaling = pow(2, 8 * self.bytes_per_pixel)
@@ -49,7 +60,14 @@ class NanoscopeImage(object):
         self.converted_data = func(self.flat_data)
         return self
 
-    def to_pixels(self):
+    def colorize(self, colortable=12):
+        """
+        Colorizes the data according to the specified height scale. Currently
+        uses colorscale #12 from Nanoscope as hardcoded behavior.
+        """
+        if colortable != 12:
+            raise ValueError('Only colortable #12 is currently supported')
+
         colors = {
             'r': (lambda p: np.clip(np.round(
                 p * (10200 / 37) - (765 / 37)), 0, 255)),
@@ -71,10 +89,23 @@ class NanoscopeImage(object):
                 data[-1].append(get_color(col))
         return np.array(data, dtype=np.uint8)
 
+    def reset_height_scale(self):
+        """
+        Resets the height scale to the original value from the file.
+        """
+        self.height_scale = self.sensitivity * self.magnify * self.scale
+
     def zrange(self):
+        """
+        Returns the z-range of the data, the difference between the maximum and
+        minimum values.
+        """
         return self.data.ptp()
 
     def rms(self):
+        """
+        Returns the RMS roughness of the data.
+        """
         return np.sqrt(np.sum(np.vectorize(
             lambda v: v * v)(self.data)) / self.data.size)
 
@@ -134,6 +165,9 @@ class NanoscopeParser(object):
                     return
 
     def read_image_data(self, image_type):
+        """
+        Read the raw data for the specified image type if it is in the file.
+        """
         if image_type not in ['Height', 'Amplitude', 'Phase']:
             raise ValueError('Unsupported image type {0}'.format(image_type))
         if image_type not in self.config['_Images']:
@@ -157,6 +191,9 @@ class NanoscopeParser(object):
         return self.images[image_type]
 
     def read_file(self):
+        """
+        Read the header and raw data for all images.
+        """
         self.read_header()
         for image_type in six.iterkeys(self.config['_Images']):
             self.read_image_data(image_type)
