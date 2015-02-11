@@ -172,6 +172,13 @@ class TestNanoscopeParser(unittest.TestCase):
         p.read_header()
         self.assertDictEqual(data, p.config)
 
+    def test_property(self):
+        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
+        p.read_file()
+        self.assertIsNotNone(p.height)
+        self.assertIsNotNone(p.amplitude)
+        self.assertIsNone(p.phase)
+
     def test_height_scale(self):
         p = NanoscopeParser('./tests/files/full_multiple_images.txt')
         p.read_header()
@@ -197,14 +204,25 @@ class TestNanoscopeParser(unittest.TestCase):
                     msg='@ ({0}, {1}) '
                         '0x{2:X}'.format(i, j, get_loc(i, j)))
 
+    def test_read_unsupported_image_type(self):
+        p = NanoscopeParser('./tests/files/header_single_section.txt', 'utf-8')
+        p.read_header()
+        with self.assertRaises(ValueError, msg='Unsupported image type test'):
+            p.read_image_data('test')
+
+    def test_read_nonexistant_image_type(self):
+        p = NanoscopeParser('./tests/files/header_single_image.txt', 'utf-8')
+        p.read_header()
+        with self.assertRaises(ValueError, msg='Image type Phase not in file'):
+            p.read_image_data('Phase')
+
 
 class TestNanoscopeImage(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-        p.read_header()
-        p.read_image_data('Height')
+        p.read_file()
         p.height.flatten(1).convert()
         cls.parser = p
         cls.height = p.height

@@ -185,6 +185,14 @@ class TestValueParameter(unittest.TestCase):
         self.assertEqual(hard_scale, p.hard_scale)
         self.assertEqual(value, p.hard_value)
 
+    def test_str(self):
+        soft_scale = 'soft_scale'
+        hard_scale = 'hard_scale'
+        value = 'value'
+        p = parameter.parse_parameter(
+            r'\param: V [{0}] ({1}) {2}'.format(soft_scale, hard_scale, value))
+        self.assertEqual(p.__str__(), 'param: [soft_scale] (hard_scale) value')
+
 
 class TestScaleParameter(unittest.TestCase):
 
@@ -208,6 +216,13 @@ class TestScaleParameter(unittest.TestCase):
         self.assertEqual(soft_scale, p.soft_scale)
         self.assertEqual(value, p.hard_value)
 
+    def test_str(self):
+        soft_scale = 'soft_scale'
+        value = 'value'
+        p = parameter.parse_parameter(
+            r'\param: C [{0}] {1}'.format(soft_scale, value))
+        self.assertEqual(p.__str__(), 'param: [soft_scale] value')
+
 
 class TestSelectParameter(unittest.TestCase):
 
@@ -230,3 +245,10 @@ class TestSelectParameter(unittest.TestCase):
             r'\param: S [{0}] "{1}"'.format(internal, external))
         self.assertEqual(internal, p.internal)
         self.assertEqual(external, p.external)
+
+    def test_str(self):
+        internal = 'internal'
+        external = 'external'
+        p = parameter.parse_parameter(
+            r'\param: S [{0}] "{1}"'.format(internal, external))
+        self.assertEqual(p.__str__(), 'param: [internal] "external"')
