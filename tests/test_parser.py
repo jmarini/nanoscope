@@ -272,10 +272,10 @@ class TestNanoscopeImage(unittest.TestCase):
 
     def test_zrange(self):
         expected = 27.397
-        actual = self.height.zrange()
+        actual = self.height.zrange
         self.assertAlmostEqual(actual, expected, delta=0.001)
 
     def test_rms(self):
         expected = 4.325
-        actual = self.height.rms()
+        actual = self.height.rms
         self.assertAlmostEqual(actual, expected, delta=0.001)

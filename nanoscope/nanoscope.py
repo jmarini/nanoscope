@@ -25,6 +25,8 @@ class NanoscopeImage(object):
         self.converted_data = None
         self.type = image_type
         self.height_scale = self.sensitivity * self.magnify * self.scale
+        self._rms = None
+        self._zrange = None
 
     @property
     def data(self):
@@ -41,26 +43,44 @@ class NanoscopeImage(object):
         """
         Flattens the raw data, by fitting each scanline to a polynomial with
         the order specified and subtracting that fit from the raw data.
+
+        Typically happens prior to converting from raw data.
+
+        :param order: The order of the polynomial to use when flattening.
+                      Defaults to 1 (linear).
+        :returns: The image with flattened data for chaining commands.
         """
         self.flat_data = np.round([self._flatten_scanline(line, order)
                                    for line in self.raw_data])
+        self._reset_cached()
         return self
 
     def convert(self):
         """
         Converts the raw data into data with the proper units for that image
         type (i.e. nm for Height, V for Amplitude).
+
+        Typically happens after flattening the data.
+
+        :returns: The image with converted data for chaining commands.
         """
         if self.flat_data is None:
             self.flat_data = self.raw_data
         value = self.sensitivity * self.scale / pow(2, 8 * self.bytes_per_pixel)
         self.converted_data = self.flat_data * value
+        self._reset_cached()
         return self
 
     def colorize(self, colortable=12):
         """
         Colorizes the data according to the specified height scale. Currently
         uses colorscale #12 from Nanoscope as hardcoded behavior.
+
+        :param colortable: The Nanoscope colortable to use.
+                           Only 12 is supported, and is the default.
+        :returns: The pixels of the image ready for use with
+                  ``Pillow.Image.fromarray``.
+        :raises ValueError: If the colortable is not supported.
         """
         if colortable != 12:
             raise ValueError('Only colortable #12 is currently supported')
@@ -92,18 +112,24 @@ class NanoscopeImage(object):
         """
         self.height_scale = self.sensitivity * self.magnify * self.scale
 
+    @property
     def zrange(self):
         """
         Returns the z-range of the data, the difference between the maximum and
         minimum values.
         """
-        return self.data.ptp()
+        if self._zrange is None:
+            self._zrange = self.data.ptp()
+        return self._zrange
 
+    @property
     def rms(self):
         """
-        Returns the RMS roughness of the data.
+        Returns the root mean square roughness of the data.
         """
-        return np.sqrt(np.sum(np.square(self.data)) / self.data.size)
+        if self._rms is None:
+            self._rms = np.sqrt(np.sum(np.square(self.data)) / self.data.size)
+        return self._rms
 
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)
@@ -112,6 +138,9 @@ class NanoscopeImage(object):
             for n, c in enumerate(reversed(coefficients))])
             for i in range(len(data))])
         return data - correction
+
+    def _reset_cached(self):
+        self._rms = self._zrange = None
 
 
 class NanoscopeParser(object):
@@ -163,6 +192,12 @@ class NanoscopeParser(object):
     def read_image_data(self, image_type):
         """
         Read the raw data for the specified image type if it is in the file.
+
+        :param image_type: String indicating which image type to read.
+                           Only accepts 'Height', 'Amplitude', and 'Phase'
+        :returns: A NanoscopeImage instance of the specified type
+        :raises ValueError: If image_type is a nonsupported type
+        :raises ValueError: If the image_type indicated is not in the file
         """
         if image_type not in ['Height', 'Amplitude', 'Phase']:
             raise ValueError('Unsupported image type {0}'.format(image_type))
