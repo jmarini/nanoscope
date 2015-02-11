@@ -7,13 +7,30 @@ except ImportError:
     from distutils.core import setup
 
 
+with open('README.rst') as f:
+    readme = f.read()
+
+
 setup(
     name='nanoscope',
     version='1.0.1',
-    url='',
+    description='Library to parse and process of Nanoscope Dimension AFM files',
+    long_description=readme,
+    url='https://github.com/jmarini/nanoscope',
     author='Jonathan Marini',
     author_email='jmarini@ieee.org',
     packages=['nanoscope'],
     install_requires=['numpy', 'six'],
     test_suite='tests',
+    classifiers=(
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python 2.7',
+        'Programming Language :: Python 3',
+        'Programming Language :: Python 3.3',
+        'Programming Language :: Python 3.4',
+        'Topic :: Scientific/Engineering',
+    ),
 )
