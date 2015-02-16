@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, unicode_literals
-
-import io
+from __future__ import absolute_import, division, unicode_literals
 
 import numpy as np
 import six
 
 from .parameter import parse_parameter
+
+
+def read(file_object, header_only=False):
+    return NanoscopeParser(file_object, header_only)
 
 
 class NanoscopeImage(object):
@@ -117,6 +119,9 @@ class NanoscopeImage(object):
         """
         Returns the z-range of the data, the difference between the maximum and
         minimum values.
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
         """
         if self._zrange is None:
             self._zrange = self.data.ptp()
@@ -126,6 +131,9 @@ class NanoscopeImage(object):
     def rms(self):
         """
         Returns the root mean square roughness of the data.
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
         """
         if self._rms is None:
             self._rms = np.sqrt(np.sum(np.square(self.data)) / self.data.size)
@@ -147,12 +155,16 @@ class NanoscopeParser(object):
     """
     Handles reading and parsing Nanoscope files.
     """
+    supported_versions = ['0x05120130']
 
-    def __init__(self, filename, encoding='cp1252'):
-        self.filename = filename
-        self.encoding = encoding
+    def __init__(self, file_object, header_only=False):
         self.images = {}
         self.config = {'_Images': {}}
+
+        self._read_header(file_object)
+        if not header_only:
+            for image_type in six.iterkeys(self.config['_Images']):
+                self._read_image_data(file_object, image_type)
 
     @property
     def height(self):
@@ -175,21 +187,20 @@ class NanoscopeParser(object):
         """
         return self.images.get('Phase', None)
 
-    def read_header(self):
+    def _read_header(self, file_object):
         """
         Read the Nanoscope file header.
         """
-        with io.open(self.filename, 'r', encoding=self.encoding) as f:
-            for line in f:
-                parameter = parse_parameter(line.rstrip('\n'))
-                if parameter.type != 'H' and parameter.parameter == 'Version':
-                    if parameter.hard_value not in ['0x05120130']:
-                        raise ValueError('Unsupported file version {0}'.format(
-                            parameter.hard_value))
-                if self._handle_parameter(parameter, f):
-                    return
+        file_object.seek(0)
+        for line in file_object:
+            parameter = parse_parameter(line.rstrip('\n'))
+            if not self._validate_version(parameter):
+                raise ValueError(
+                    'Unsupported file version {0}'.format(parameter.hard_value))
+            if self._handle_parameter(parameter, file_object):
+                return
 
-    def read_image_data(self, image_type):
+    def _read_image_data(self, file_object, image_type):
         """
         Read the raw data for the specified image type if it is in the file.
 
@@ -203,31 +214,33 @@ class NanoscopeParser(object):
             raise ValueError('Unsupported image type {0}'.format(image_type))
         if image_type not in self.config['_Images']:
             raise ValueError('Image type {0} not in file.'.format(image_type))
+
         config = self.config['_Images'][image_type]
-        with io.open(self.filename, 'rb') as f:
-            f.seek(config['Data offset'])
-            num = int(config['Data length'] / config['Bytes/pixel'])
-            raw_data = np.fromstring(f.read(config['Data length']),
-                                     dtype='<{0}h'.format(num))
-            raw_data = raw_data.reshape((config['Number of lines'],
-                                         config['Samps/line']))
+        data_offset = config['Data offset']
+        data_size = config['Bytes/pixel']
+        number_lines = config['Number of lines']
+        samples_per_line = config['Samps/line']
+
+        file_object.seek(data_offset)
+        raw_data = (np.fromfile(file_object,
+                                dtype='<i{}'.format(data_size),
+                                count=number_lines * samples_per_line)
+                   .reshape((number_lines, samples_per_line)))
+
         self.images[image_type] = NanoscopeImage(
             image_type,
             raw_data,
             self.config['Sens. Zscan'],
-            self.config['_Images'][image_type]['Bytes/pixel'],
-            self.config['_Images'][image_type]['Z magnify'],
-            self.config['_Images'][image_type]['Z scale']
+            config['Bytes/pixel'],
+            config['Z magnify'],
+            config['Z scale']
         )
         return self.images[image_type]
 
-    def read_file(self):
-        """
-        Read the header and raw data for all images.
-        """
-        self.read_header()
-        for image_type in six.iterkeys(self.config['_Images']):
-            self.read_image_data(image_type)
+    def _validate_version(self, parameter):
+        if parameter.type == 'H' or parameter.parameter != 'Version':
+            return True
+        return parameter.hard_value in self.supported_versions
 
     def _handle_parameter(self, parameter, f):
         if parameter.type == 'H':  # header

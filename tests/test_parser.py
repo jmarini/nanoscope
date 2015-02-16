@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, unicode_literals
+
 import datetime
+import io
 import unittest
 
 import numpy as np
+import six
 
-from nanoscope import NanoscopeParser
+from nanoscope.nanoscope import NanoscopeParser, read
 
 
 class TestNanoscopeParser(unittest.TestCase):
 
     def test_read_header_single_section(self):
-        data = {
+        parsed_data = {
             'Version': '0x05120130',
             'Date': datetime.datetime(2014, 10, 17, 10, 27, 26),
             'Start context': 'OL2',
@@ -22,12 +26,25 @@ class TestNanoscopeParser(unittest.TestCase):
             'Engage Y Pos': -42151.3,
             '_Images': {},
         }
-        p = NanoscopeParser('./tests/files/header_single_section.txt', 'utf-8')
-        p.read_header()
-        self.assertDictEqual(data, p.config)
+        file_data = ('\\*File list\n'
+                     '\\Version: 0x05120130\n'
+                     '\\Date: 10:27:26 AM Fri Oct 17 2014\n'
+                     '\\Start context: OL2\n'
+                     '\\Data length: 40960\n'
+                     '\\Text: \n'
+                     '\\History: \n'
+                     '\\Navigator note: \n'
+                     '\\Engage X Pos: -19783.4 um\n'
+                     '\\Engage Y Pos: -42151.3 um\n'
+                     '\\*File list end\n')
+
+        f = six.StringIO(file_data)
+        p = NanoscopeParser(f)
+        f.close()
+        self.assertDictEqual(parsed_data, p.config)
 
     def test_read_header_multiple_sections(self):
-        data = {
+        parsed_data = {
             'Version': '0x05120130',
             'Date': datetime.datetime(2014, 10, 17, 10, 27, 26),
             'Start context': 'OL2',
@@ -48,12 +65,34 @@ class TestNanoscopeParser(unittest.TestCase):
             'Profile name': 'default',
             '_Images': {},
         }
-        p = NanoscopeParser('./tests/files/header_multiple_sections.txt', 'utf-8')
-        p.read_header()
-        self.assertDictEqual(data, p.config)
+        file_data = ('\\*File list\n'
+                     '\\Version: 0x05120130\n'
+                     '\\Date: 10:27:26 AM Fri Oct 17 2014\n'
+                     '\\Start context: OL2\n'
+                     '\\Data length: 40960\n'
+                     '\\Text: \n'
+                     '\\History: \n'
+                     '\\Navigator note: \n'
+                     '\\Engage X Pos: -19783.4 um\n'
+                     '\\Engage Y Pos: -42151.3 um\n'
+                     '\\*Equipment list\n'
+                     '\\Description: D3100 NSIV\n'
+                     '\\Controller: IV\n'
+                     '\\Microscope: D3100\n'
+                     '\\Extender: Quadrex\n'
+                     '\\Tip Exchange: None\n'
+                     '\\Vision: FrameGrabber\n'
+                     '\\Zoom System: Motorized\n'
+                     '\\Scanner file: 1965g.scn\n'
+                     '\\Profile name: default\n'
+                     '\\*File list end\n')
+        f = six.StringIO(file_data)
+        p = NanoscopeParser(f)
+        f.close()
+        self.assertDictEqual(parsed_data, p.config)
 
     def test_read_header_single_image(self):
-        data = {
+        parsed_data = {
             'Version': '0x05120130',
             'Date': datetime.datetime(2014, 10, 17, 10, 27, 26),
             'Start context': 'OL2',
@@ -94,12 +133,53 @@ class TestNanoscopeParser(unittest.TestCase):
                 },
             },
         }
-        p = NanoscopeParser('./tests/files/header_single_image.txt', 'utf-8')
-        p.read_header()
-        self.assertDictEqual(data, p.config)
+        file_data = (
+            '\\*File list\n'
+            '\\Version: 0x05120130\n'
+            '\\Date: 10:27:26 AM Fri Oct 17 2014\n'
+            '\\Start context: OL2\n'
+            '\\Data length: 40960\n'
+            '\\Text: \n'
+            '\\History: \n'
+            '\\Navigator note: \n'
+            '\\Engage X Pos: -19783.4 um\n'
+            '\\Engage Y Pos: -42151.3 um\n'
+            '\\*Ciao image list\n'
+            '\\Data offset: 40960\n'
+            '\\Data length: 524288\n'
+            '\\Bytes/pixel: 2\n'
+            '\\Start context: OL\n'
+            '\\Data type: AFM\n'
+            '\\Note: \n'
+            '\\Samps/line: 512\n'
+            '\\Number of lines: 512\n'
+            '\\Aspect ratio: 1:1\n'
+            '\\Line direction: Retrace\n'
+            '\\Highpass: 0\n'
+            '\\Lowpass: 0\n'
+            '\\Realtime planefit: Line\n'
+            '\\Offline planefit: None\n'
+            '\\Valid data start X: 0\n'
+            '\\Valid data start Y: 0\n'
+            '\\Valid data len X: 512\n'
+            '\\Valid data len Y: 512\n'
+            '\\Tip x width correction factor: 1\n'
+            '\\Tip y width correction factor: 1\n'
+            '\\Tip x width correction factor sigma: 1\n'
+            '\\Tip y width correction factor sigma: 1\n'
+            '\\@2:Image Data: S [Height] "Height"\n'
+            '\\@Z magnify: C [2:Z scale] 0.002639945 \n'
+            '\\@2:Z scale: V [Sens. Zscan] (0.006693481 V/LSB) 438.6572 V\n'
+            '\\@2:Z offset: V [Sens. Zscan] (0.006693481 V/LSB)       0 V\n'
+            '\\*File list end\n'
+        )
+        f = six.StringIO(file_data)
+        p = NanoscopeParser(f, True)
+        f.close()
+        self.assertDictEqual(parsed_data, p.config)
 
     def test_read_header_multiple_images(self):
-        data = {
+        parsed_data = {
             'Version': '0x05120130',
             'Date': datetime.datetime(2014, 10, 17, 10, 27, 26),
             'Start context': 'OL2',
@@ -168,20 +248,92 @@ class TestNanoscopeParser(unittest.TestCase):
                 },
             },
         }
-        p = NanoscopeParser('./tests/files/header_multiple_images.txt', 'utf-8')
-        p.read_header()
-        self.assertDictEqual(data, p.config)
+        file_data = (
+            '\\*File list\n'
+            '\\Version: 0x05120130\n'
+            '\\Date: 10:27:26 AM Fri Oct 17 2014\n'
+            '\\Start context: OL2\n'
+            '\\Data length: 40960\n'
+            '\\Text: \n'
+            '\\History: \n'
+            '\\Navigator note: \n'
+            '\\Engage X Pos: -19783.4 um\n'
+            '\\Engage Y Pos: -42151.3 um\n'
+            '\\*Ciao image list\n'
+            '\\Data offset: 40960\n'
+            '\\Data length: 524288\n'
+            '\\Bytes/pixel: 2\n'
+            '\\Start context: OL\n'
+            '\\Data type: AFM\n'
+            '\\Note: \n'
+            '\\Samps/line: 512\n'
+            '\\Number of lines: 512\n'
+            '\\Aspect ratio: 1:1\n'
+            '\\Line direction: Retrace\n'
+            '\\Highpass: 0\n'
+            '\\Lowpass: 0\n'
+            '\\Realtime planefit: Line\n'
+            '\\Offline planefit: None\n'
+            '\\Valid data start X: 0\n'
+            '\\Valid data start Y: 0\n'
+            '\\Valid data len X: 512\n'
+            '\\Valid data len Y: 512\n'
+            '\\Tip x width correction factor: 1\n'
+            '\\Tip y width correction factor: 1\n'
+            '\\Tip x width correction factor sigma: 1\n'
+            '\\Tip y width correction factor sigma: 1\n'
+            '\\@2:Image Data: S [Height] "Height"\n'
+            '\\@Z magnify: C [2:Z scale] 0.002639945 \n'
+            '\\@2:Z scale: V [Sens. Zscan] (0.006693481 V/LSB) 438.6572 V\n'
+            '\\@2:Z offset: V [Sens. Zscan] (0.006693481 V/LSB)       0 V\n'
+            '\\*Ciao image list\n'
+            '\\Data offset: 565248\n'
+            '\\Data length: 524288\n'
+            '\\Bytes/pixel: 2\n'
+            '\\Start context: OL\n'
+            '\\Data type: AFM\n'
+            '\\Note: \n'
+            '\\Samps/line: 512\n'
+            '\\Number of lines: 512\n'
+            '\\Aspect ratio: 1:1\n'
+            '\\Line direction: Retrace\n'
+            '\\Highpass: 0\n'
+            '\\Lowpass: 0\n'
+            '\\Realtime planefit: Line\n'
+            '\\Offline planefit: Full\n'
+            '\\Valid data start X: 0\n'
+            '\\Valid data start Y: 0\n'
+            '\\Valid data len X: 512\n'
+            '\\Valid data len Y: 512\n'
+            '\\Tip x width correction factor: 1\n'
+            '\\Tip y width correction factor: 1\n'
+            '\\Tip x width correction factor sigma: 1\n'
+            '\\Tip y width correction factor sigma: 1\n'
+            '\\@2:Image Data: S [Amplitude] "Amplitude"\n'
+            '\\@Z magnify: C [2:Z scale] 0.4615211 \n'
+            '\\@2:Z scale: V [Sens. Amplitude] (0.0003051758 V/LSB) 0.2166748 V\n'
+            '\\@2:Z offset: V [Sens. Amplitude] (0.0003051758 V/LSB)       0 V\n'
+            '\\*File list end\n'
+        )
+        f = six.StringIO(file_data)
+        p = NanoscopeParser(f, True)
+        f.close()
+        self.assertDictEqual(parsed_data, p.config)
 
     def test_property(self):
-        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-        p.read_file()
+        f = io.open('./tests/files/full_multiple_images.txt',
+                    mode='r', encoding='cp1252')
+        p = read(f)
+        f.close()
         self.assertIsNotNone(p.height)
         self.assertIsNotNone(p.amplitude)
         self.assertIsNone(p.phase)
 
     def test_height_scale(self):
-        p = NanoscopeParser('./tests/files/full_multiple_images.txt')
-        p.read_header()
+        f = io.open('./tests/files/full_multiple_images.txt',
+                    mode='r', encoding='cp1252')
+        p = read(f)
+        f.close()
         sensitivity = p.config['Sens. Zscan']
         magnify = p.config['_Images']['Height']['Z magnify']
         scale = p.config['_Images']['Height']['Z scale']
@@ -190,9 +342,11 @@ class TestNanoscopeParser(unittest.TestCase):
     def test_read_height_data_multiple_images(self):
         csv_data = np.loadtxt('./tests/files/reference_raw.csv',
                               delimiter=',')
-        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-        p.read_header()
-        height = p.read_image_data('Height')
+        f = io.open('./tests/files/full_multiple_images.txt',
+                    mode='r', encoding='cp1252')
+        p = read(f)
+        f.close()
+        height = p.height
         get_loc = (lambda i, j:
             p.config['_Images']['Height']['Data offset'] +
             p.config['_Images']['Height']['Samps/line'] *
@@ -204,25 +358,15 @@ class TestNanoscopeParser(unittest.TestCase):
                     msg='@ ({0}, {1}) '
                         '0x{2:X}'.format(i, j, get_loc(i, j)))
 
-    def test_read_unsupported_image_type(self):
-        p = NanoscopeParser('./tests/files/header_single_section.txt', 'utf-8')
-        p.read_header()
-        with self.assertRaises(ValueError, msg='Unsupported image type test'):
-            p.read_image_data('test')
-
-    def test_read_nonexistant_image_type(self):
-        p = NanoscopeParser('./tests/files/header_single_image.txt', 'utf-8')
-        p.read_header()
-        with self.assertRaises(ValueError, msg='Image type Phase not in file'):
-            p.read_image_data('Phase')
-
 
 class TestNanoscopeImage(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        p = NanoscopeParser('./tests/files/full_multiple_images.txt', 'cp1252')
-        p.read_file()
+        f = io.open('./tests/files/full_multiple_images.txt',
+                    mode='r', encoding='cp1252')
+        p = read(f)
+        f.close()
         p.height.flatten(1).convert()
         cls.parser = p
         cls.height = p.height

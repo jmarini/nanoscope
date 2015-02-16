@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 import datetime
 import re
+
+
+__all__ = ['parse_parameter']
 
 
 class CiaoParameter(object):
@@ -116,6 +119,10 @@ def parse_parameter(string):
     """
     Factory function that parses the parameter string and creates the
     appropriate CiaoParameter object.
+
+    :param string: The parameter string to parse.
+    :returns: The CiaoParameter that corresponds with the parameter string.
+    :raises ValueError: If the string is not a valid CiaoParameter.
     """
     header_match = re.match(r'\\\*(?P<header>.+)', string)
     if header_match is not None:

@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
+import nanoscope
 
-with open('README.rst') as f:
+with open('README.rst', 'r') as f:
     readme = f.read()
 
 
 setup(
     name='nanoscope',
-    version='0.5.0',
+    version=nanoscope.__version__,
     description='Library to parse and process of Nanoscope Dimension AFM files',
     long_description=readme,
     url='https://github.com/jmarini/nanoscope',
