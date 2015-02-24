@@ -4,10 +4,15 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+from io import open
+from os import path
 
 import nanoscope
 
-with open('README.rst', 'r') as f:
+
+base_dir = path.abspath(path.dirname(__file__))
+
+with open(path.join(base_dir, 'README.rst'), 'r', encoding='utf-8') as f:
     readme = f.read()
 
 
@@ -26,11 +31,11 @@ setup(
         'Development Status :: 5 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python 2.7',
-        'Programming Language :: Python 3',
-        'Programming Language :: Python 3.3',
-        'Programming Language :: Python 3.4',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Scientific/Engineering',
     ),
 )
