@@ -40,6 +40,12 @@ class TestStringDecoding(unittest.TestCase):
         with self.assertRaises(UnicodeError):
             parameter.decode(string, encoding='utf-8')
 
+    def test_invalid_type(self):
+        number = 12345
+        with self.assertRaises(TypeError):
+            parameter.decode(number)
+
+
 class TestParameterParsing(unittest.TestCase):
 
     def test_empty_string(self):
@@ -157,6 +163,12 @@ class TestSimpleParameter(unittest.TestCase):
         p = parameter.parse_parameter(r'\param: {0}'.format(value))
         self.assertEqual(value, p.hard_value)
 
+    def test_str(self):
+        param = 'param'
+        hard_value = 'hard_value'
+        p = parameter.CiaoParameter(param, hard_value)
+        self.assertEqual(p.__str__(), '{}: {}'.format(param, hard_value))
+
 
 class TestValueParameter(unittest.TestCase):
 
@@ -219,12 +231,13 @@ class TestValueParameter(unittest.TestCase):
         self.assertEqual(value, p.hard_value)
 
     def test_str(self):
+        param = 'param'
         soft_scale = 'soft_scale'
         hard_scale = 'hard_scale'
         value = 'value'
-        p = parameter.parse_parameter(
-            r'\param: V [{0}] ({1}) {2}'.format(soft_scale, hard_scale, value))
-        self.assertEqual(p.__str__(), 'param: [soft_scale] (hard_scale) value')
+        p = parameter.CiaoValue(param, soft_scale, hard_scale, value)
+        self.assertEqual(p.__str__(), '{0}: [{1}] ({2}) {3}'.format(
+            param, soft_scale, hard_scale, value))
 
 
 class TestScaleParameter(unittest.TestCase):
@@ -250,11 +263,12 @@ class TestScaleParameter(unittest.TestCase):
         self.assertEqual(value, p.hard_value)
 
     def test_str(self):
+        param = 'param'
         soft_scale = 'soft_scale'
         value = 'value'
-        p = parameter.parse_parameter(
-            r'\param: C [{0}] {1}'.format(soft_scale, value))
-        self.assertEqual(p.__str__(), 'param: [soft_scale] value')
+        p = parameter.CiaoScale(param, soft_scale, value)
+        self.assertEqual(p.__str__(), '{0}: [{1}] {2}'.format(
+            param, soft_scale, value))
 
 
 class TestSelectParameter(unittest.TestCase):
@@ -280,8 +294,17 @@ class TestSelectParameter(unittest.TestCase):
         self.assertEqual(external, p.external)
 
     def test_str(self):
+        param = 'param'
         internal = 'internal'
         external = 'external'
-        p = parameter.parse_parameter(
-            r'\param: S [{0}] "{1}"'.format(internal, external))
-        self.assertEqual(p.__str__(), 'param: [internal] "external"')
+        p = parameter.CiaoSelect(param, internal, external)
+        self.assertEqual(p.__str__(), '{0}: [{1}] "{2}"'.format(
+            param, internal, external))
+
+
+class TestSectionHeader(unittest.TestCase):
+
+    def test_str(self):
+        header = 'header'
+        p = parameter.CiaoSectionHeader(header)
+        self.assertEqual(p.__str__(), header)
