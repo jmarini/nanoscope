@@ -19,9 +19,8 @@ An example of typical usage is shown below, including using Pillow to save the i
     import nanoscope
     from PIL import Image
 
-    p = nanoscope.NanoscopeParser('./file.000')
-    p.read_file()
-    p.height.flatten().convert()
+    p = nanoscope.read('./file.000')
+    p.height.process()
     print(p.height.zrange, p.height.rms)
     pixels = p.height.colorize()
     Image.fromarray(pixels).save('file.png')
