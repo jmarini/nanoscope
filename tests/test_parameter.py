@@ -7,6 +7,39 @@ import six
 from nanoscope import parameter
 
 
+class TestStringDecoding(unittest.TestCase):
+
+    def test_unicode_string(self):
+        string = six.u('testing')
+        decoded = parameter.decode(string)
+        self.assertTrue(isinstance(decoded, six.string_types))
+        self.assertEqual(decoded, string)
+
+    def test_string(self):
+        string = 'testing'
+        decoded = parameter.decode(string)
+        self.assertEqual(decoded, string)
+
+    def test_strip(self):
+        string = six.u('testing\r\n')
+        decoded = parameter.decode(string)
+        self.assertEqual(decoded, string[:-2])
+
+    def test_binary_string_ascii(self):
+        string = six.b('testing')
+        decoded = parameter.decode(string)
+        self.assertEqual(six.u('testing'), decoded)
+
+    def test_binary_string_utf8(self):
+        string = six.b('\xd0\x98')
+        decoded = parameter.decode(string, encoding='utf-8')
+        self.assertEqual(six.u('\u0418'), decoded)
+
+    def test_encoding_error(self):
+        string = six.b('\xe0\x98')  # invalid continuation byte
+        with self.assertRaises(UnicodeError):
+            parameter.decode(string, encoding='utf-8')
+
 class TestParameterParsing(unittest.TestCase):
 
     def test_empty_string(self):

@@ -174,7 +174,7 @@ class TestNanoscopeParser(unittest.TestCase):
             '\\*File list end\n'
         )
         f = six.StringIO(file_data)
-        p = NanoscopeParser(f, True)
+        p = NanoscopeParser(f, header_only=True)
         f.close()
         self.assertDictEqual(parsed_data, p.config)
 
@@ -316,24 +316,20 @@ class TestNanoscopeParser(unittest.TestCase):
             '\\*File list end\n'
         )
         f = six.StringIO(file_data)
-        p = NanoscopeParser(f, True)
+        p = NanoscopeParser(f, header_only=True)
         f.close()
         self.assertDictEqual(parsed_data, p.config)
 
     def test_property(self):
-        f = io.open('./tests/files/full_multiple_images.txt',
-                    mode='r', encoding='cp1252')
-        p = read(f)
-        f.close()
+        with io.open('./tests/files/full_multiple_images.txt', 'rb') as f:
+            p = read(f, encoding='cp1252')
         self.assertIsNotNone(p.height)
         self.assertIsNotNone(p.amplitude)
         self.assertIsNone(p.phase)
 
     def test_height_scale(self):
-        f = io.open('./tests/files/full_multiple_images.txt',
-                    mode='r', encoding='cp1252')
-        p = read(f)
-        f.close()
+        with io.open('./tests/files/full_multiple_images.txt', 'rb') as f:
+            p = read(f, encoding='cp1252')
         sensitivity = p.config['Sens. Zscan']
         magnify = p.config['_Images']['Height']['Z magnify']
         scale = p.config['_Images']['Height']['Z scale']
@@ -342,10 +338,8 @@ class TestNanoscopeParser(unittest.TestCase):
     def test_read_height_data_multiple_images(self):
         csv_data = np.loadtxt('./tests/files/reference_raw.csv',
                               delimiter=',')
-        f = io.open('./tests/files/full_multiple_images.txt',
-                    mode='r', encoding='cp1252')
-        p = read(f)
-        f.close()
+        with io.open('./tests/files/full_multiple_images.txt', 'rb') as f:
+            p = read(f, encoding='cp1252')
         height = p.height
         get_loc = (lambda i, j:
             p.config['_Images']['Height']['Data offset'] +
@@ -363,11 +357,9 @@ class TestNanoscopeImage(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        f = io.open('./tests/files/full_multiple_images.txt',
-                    mode='r', encoding='cp1252')
-        p = read(f)
-        f.close()
-        p.height.flatten(1).convert()
+        with io.open('./tests/files/full_multiple_images.txt', 'rb') as f:
+            p = read(f, encoding='cp1252')
+        p.height.process(order=1)
         cls.parser = p
         cls.height = p.height
         cls.get_loc = (lambda self, i, j:

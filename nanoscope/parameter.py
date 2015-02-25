@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, unicode_literals
 import datetime
 import re
 
+import six
+
 
 __all__ = ['parse_parameter']
 
@@ -115,7 +117,31 @@ class CiaoSectionHeader(CiaoParameter):
         return self.header
 
 
-def parse_parameter(string):
+def decode(string, encoding='utf-8'):
+    """
+    Decodes the binary string with the specified encoding (or passes through
+    a non-binary string) and strips newlines off the end.
+
+    :param string: The string, may be binary or non-binary but should be text
+                   data.
+    :param encoding: The encoding to use for a binary string. Defaults to utf-8.
+    :returns: The decoded and stripped string.
+    :raises TypeError: If the passed parameter is not a valid string.
+    :raises UnicodeError: When decoding a binary string if there are encoding
+                          errors.
+    """
+    if isinstance(string, six.text_type):
+        return string.rstrip('\r\n')
+
+    try:
+        string = string.decode(encoding=encoding).rstrip('\r\n')
+    except AttributeError:
+        raise TypeError('Invalid type {} passed.'.format(type(string)))
+
+    return string
+
+
+def parse_parameter(string, encoding='utf-8'):
     """
     Factory function that parses the parameter string and creates the
     appropriate CiaoParameter object.
@@ -124,6 +150,7 @@ def parse_parameter(string):
     :returns: The CiaoParameter that corresponds with the parameter string.
     :raises ValueError: If the string is not a valid CiaoParameter.
     """
+    string = decode(string, encoding)
     header_match = re.match(r'\\\*(?P<header>.+)', string)
     if header_match is not None:
         return CiaoSectionHeader(header_match.group('header'))

@@ -216,7 +216,7 @@ class NanoscopeParser(object):
         """
         file_object.seek(0)
         for line in file_object:
-            parameter = parse_parameter(line.rstrip('\n'))
+            parameter = parse_parameter(line, self.encoding)
             if not self._validate_version(parameter):
                 raise ValueError(
                     'Unsupported file version {0}'.format(parameter.hard_value))
@@ -245,9 +245,10 @@ class NanoscopeParser(object):
         samples_per_line = config['Samps/line']
 
         file_object.seek(data_offset)
-        raw_data = (np.fromfile(file_object,
-                                dtype='<i{}'.format(data_size),
-                                count=number_lines * samples_per_line)
+        number_points = number_lines * samples_per_line
+        raw_data = (np.frombuffer(file_object.read(data_size * number_points),
+                                  dtype='<i{}'.format(data_size),
+                                  count=number_points)
                    .reshape((number_lines, samples_per_line)))
 
         self.images[image_type] = NanoscopeImage(
@@ -278,7 +279,7 @@ class NanoscopeParser(object):
     def _read_image_header(self, f):
         image_config = {}
         for line in f:
-            parameter = parse_parameter(line.rstrip('\n'))
+            parameter = parse_parameter(line, self.encoding)
             if parameter.type == 'H':
                 return parameter
             if parameter.type == 'S':
