@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, unicode_literals
 
+import io
+
 import numpy as np
 import six
 
 from .parameter import parse_parameter
 
 
-def read(file_object, header_only=False):
-    return NanoscopeParser(file_object, header_only)
+def read(f, encoding='utf-8', header_only=False):
+    try:
+        with io.open(f, 'rb') as file_obj:
+            images = NanoscopeParser(file_obj, encoding, header_only)
+    except TypeError:
+        if 'b' not in f.mode:
+            raise OSError('File must be opened in binary mode.')
+        images = NanoscopeParser(f, encoding, header_only)
+    return images
 
 
 class NanoscopeImage(object):
@@ -170,9 +179,10 @@ class NanoscopeParser(object):
     """
     supported_versions = ['0x05120130']
 
-    def __init__(self, file_object, header_only=False):
+    def __init__(self, file_object, encoding='utf-8', header_only=False):
         self.images = {}
         self.config = {'_Images': {}}
+        self.encoding = encoding
 
         self._read_header(file_object)
         if not header_only:
