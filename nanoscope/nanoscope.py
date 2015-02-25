@@ -41,6 +41,19 @@ class NanoscopeImage(object):
             return self.flat_data
         return self.converted_data
 
+    def process(self, order=1):
+        """
+        Flattens and converts the raw data. Convenience function that reduces
+        the manual steps needed.
+
+        :param order: The order of the polynomial to use when flattening.
+                      Defaults to 1 (linear), which should give good results
+                      for most images.
+        :returns: The image with flattened and converted data for chaining
+                  commands.
+        """
+        return self.flatten(order).convert()
+
     def flatten(self, order=1):
         """
         Flattens the raw data, by fitting each scanline to a polynomial with
