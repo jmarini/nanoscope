@@ -8,10 +8,10 @@ import unittest
 import numpy as np
 import six
 
-from nanoscope.nanoscope import NanoscopeParser, read
+from nanoscope.nanoscope import NanoscopeFile, read
 
 
-class TestNanoscopeParser(unittest.TestCase):
+class TestNanoscopeFile(unittest.TestCase):
 
     def test_read_header_single_section(self):
         parsed_data = {
@@ -38,7 +38,7 @@ class TestNanoscopeParser(unittest.TestCase):
                      '\\Engage Y Pos: -42151.3 um\n'
                      '\\*File list end\n')
         f = six.StringIO(file_data)
-        p = NanoscopeParser(f)
+        p = NanoscopeFile(f)
         f.close()
         self.assertDictEqual(parsed_data, p.config)
 
@@ -86,7 +86,7 @@ class TestNanoscopeParser(unittest.TestCase):
                      '\\Profile name: default\n'
                      '\\*File list end\n')
         f = six.StringIO(file_data)
-        p = NanoscopeParser(f)
+        p = NanoscopeFile(f)
         f.close()
         self.assertDictEqual(parsed_data, p.config)
 
@@ -173,7 +173,7 @@ class TestNanoscopeParser(unittest.TestCase):
             '\\*File list end\n'
         )
         f = six.StringIO(file_data)
-        p = NanoscopeParser(f, header_only=True)
+        p = NanoscopeFile(f, header_only=True)
         f.close()
         self.assertDictEqual(parsed_data, p.config)
 
@@ -315,7 +315,7 @@ class TestNanoscopeParser(unittest.TestCase):
             '\\*File list end\n'
         )
         f = six.StringIO(file_data)
-        p = NanoscopeParser(f, header_only=True)
+        p = NanoscopeFile(f, header_only=True)
         f.close()
         self.assertDictEqual(parsed_data, p.config)
 

@@ -22,20 +22,20 @@ def read(f, encoding='utf-8', header_only=False):
                      to utf-8.
     :param header_only: Whether to read only the header of the file. Defaults to
                         False.
-    :returns: A NanoscopeParser object containing the image data.
+    :returns: A NanoscopeFile object containing the image data.
     :raises OSError: If a passed file object is not opened in binary mode.
     """
     try:
         with io.open(f, 'rb') as file_obj:
-            images = NanoscopeParser(file_obj, encoding, header_only)
+            images = NanoscopeFile(file_obj, encoding, header_only)
     except TypeError:
         if 'b' not in f.mode:
             raise OSError('File must be opened in binary mode.')
-        images = NanoscopeParser(f, encoding, header_only)
+        images = NanoscopeFile(f, encoding, header_only)
     return images
 
 
-class NanoscopeParser(object):
+class NanoscopeFile(object):
     """
     Handles reading and parsing Nanoscope files.
     """
