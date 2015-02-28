@@ -20,8 +20,8 @@ class NanoscopeImage(object):
         self.converted_data = None
         self.type = image_type
         self.height_scale = self.sensitivity * self.magnify * self.scale
-        self._rms = None
-        self._zrange = None
+
+        self._cache = {}
 
     @property
     def data(self):
@@ -60,7 +60,7 @@ class NanoscopeImage(object):
         """
         self.flat_data = np.round([self._flatten_scanline(line, order)
                                    for line in self.raw_data])
-        self._reset_cached()
+        self._cache.clear()
         return self
 
     def convert(self):
@@ -76,7 +76,7 @@ class NanoscopeImage(object):
             self.flat_data = self.raw_data
         value = self.sensitivity * self.scale / pow(2, 8 * self.bytes_per_pixel)
         self.converted_data = self.flat_data * value
-        self._reset_cached()
+        self._cache.clear()
         return self
 
     def colorize(self, colortable=12):
@@ -121,29 +121,75 @@ class NanoscopeImage(object):
         self.height_scale = self.sensitivity * self.magnify * self.scale
 
     @property
-    def zrange(self):
-        """
-        Returns the z-range of the data, the difference between the maximum and
-        minimum values.
-
-        The value is calculated on first access and cached for later. Running
-        convert or flatten will force a recalculation on the next access.
-        """
-        if self._zrange is None:
-            self._zrange = self.data.ptp()
-        return self._zrange
+    def mean_height(self):
+        if 'mean_height' not in self._cache:
+            self._cache['mean_height'] = np.mean(self.data)
+        return self._cache['mean_height']
 
     @property
-    def rms(self):
+    def mean_roughness(self):
+        if 'mean_roughness' not in self._cache:
+            self._cache['mean_roughness'] = np.mean(self.data - self.mean_height)
+        return self._cache['mean_roughness']
+
+    @property
+    def rms_roughness(self):
         """
         Returns the root mean square roughness of the data.
 
         The value is calculated on first access and cached for later. Running
         convert or flatten will force a recalculation on the next access.
         """
-        if self._rms is None:
-            self._rms = np.sqrt(np.sum(np.square(self.data)) / self.data.size)
-        return self._rms
+        if 'rms_roughness' not in self._cache:
+            self._cache['rms_roughness'] = (
+                np.sqrt(np.sum(np.square(
+                    self.data - self.mean_height)) / self.data.size))
+        return self._cache['rms_roughness']
+
+    @property
+    def total_roughness(self):
+        return self.max_valley + self.max_peak
+
+    @property
+    def max_valley(self):
+        return abs(self.min_height - self.mean_height)
+
+    @property
+    def max_peak(self):
+        return self.max_height - self.mean_height
+
+    @property
+    def mean_valley(self):
+        if 'mean_valley' not in self._cache:
+            valley_elems = self.data[self.data < 0.0]
+            self._cache['mean_valley'] = (
+                np.sum(np.abs(
+                    valley_elems - self.mean_height)) / valley_elems.size)
+        return self._cache['mean_valley']
+
+    @property
+    def mean_peak(self):
+        if 'mean_peak' not in self._cache:
+            peak_elems = self.data[self.data > 0.0]
+            self._cache['mean_peak'] = (
+                np.sum(peak_elems - self.mean_height) / peak_elems.size)
+        return self._cache['mean_peak']
+
+    @property
+    def mean_total_roughness(self):
+        return self.mean_peak + self.mean_valley
+
+    @property
+    def min_height(self):
+        if 'min_height' not in self._cache:
+            self._cache['min_height'] = np.min(self.data)
+        return self._cache['min_height']
+
+    @property
+    def max_height(self):
+        if 'max_height' not in self._cache:
+            self._cache['max_height'] = np.max(self.data)
+        return self._cache['max_height']
 
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)
@@ -152,6 +198,3 @@ class NanoscopeImage(object):
             for n, c in enumerate(reversed(coefficients))])
             for i in range(len(data))])
         return data - correction
-
-    def _reset_cached(self):
-        self._rms = self._zrange = None

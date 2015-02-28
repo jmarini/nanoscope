@@ -60,12 +60,12 @@ class TestNanoscopeImage(unittest.TestCase):
                         msg='@ ({0}, {1}) '
                             '0x{2:X}'.format(i, j, self.get_loc(i, j)))
 
-    def test_zrange(self):
+    def test_total_roughness(self):
         expected = 27.397
-        actual = self.height.zrange
+        actual = self.height.total_roughness
         self.assertAlmostEqual(actual, expected, delta=0.001)
 
-    def test_rms(self):
+    def test_rms_roughness(self):
         expected = 4.325
-        actual = self.height.rms
+        actual = self.height.rms_roughness
         self.assertAlmostEqual(actual, expected, delta=0.001)
