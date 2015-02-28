@@ -11,6 +11,20 @@ from .parameter import parse_parameter
 
 
 def read(f, encoding='utf-8', header_only=False):
+    """
+    Reads the specified file, given as either a filename or an already opened
+    file object. Passed file objects must be opened in binary mode. Meant as the
+    typical entry point for loading in afm data.
+
+    :param f: Filename of the file to read or an opened file object. File
+              objects must be opened in binary mode.
+    :param encoding: The encoding to use when reading the file header. Defaults
+                     to utf-8.
+    :param header_only: Whether to read only the header of the file. Defaults to
+                        False.
+    :returns: A NanoscopeParser object containing the image data.
+    :raises OSError: If a passed file object is not opened in binary mode.
+    """
     try:
         with io.open(f, 'rb') as file_obj:
             images = NanoscopeParser(file_obj, encoding, header_only)
