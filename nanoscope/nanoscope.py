@@ -72,6 +72,10 @@ class NanoscopeFile(object):
         """
         return self.images.get('Phase', None)
 
+    def __iter__(self):
+        for v in six.iterkeys(self.images):
+            yield v
+
     def _read_header(self, file_object):
         """
         Read the Nanoscope file header.
