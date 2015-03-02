@@ -123,12 +123,25 @@ class NanoscopeImage(object):
 
     @property
     def mean_height(self):
+        """
+        Returns the mean height of the data in nm. For a typical processed
+        scan, this value should be about zero.
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
+        """
         if 'mean_height' not in self._cache:
             self._cache['mean_height'] = np.mean(self.data)
         return self._cache['mean_height']
 
     @property
     def mean_roughness(self):
+        """
+        Returns the mean roughness of the data in nm.
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
+        """
         if 'mean_roughness' not in self._cache:
             self._cache['mean_roughness'] = np.mean(np.abs(self.data - self.mean_height))
         return self._cache['mean_roughness']
@@ -136,7 +149,7 @@ class NanoscopeImage(object):
     @property
     def rms_roughness(self):
         """
-        Returns the root mean square roughness of the data.
+        Returns the root mean square roughness of the data in nm.
 
         The value is calculated on first access and cached for later. Running
         convert or flatten will force a recalculation on the next access.
@@ -149,18 +162,37 @@ class NanoscopeImage(object):
 
     @property
     def total_roughness(self):
+        """
+        Returns the total roughness of the data in nm. This is defined as the
+        difference between the highest peak and the lowest valley.
+        """
         return self.max_valley + self.max_peak
 
     @property
     def max_valley(self):
+        """
+        Returns the depth of the lowest valley in nm. A valley is defined
+        relative to the mean height (typically 0nm).
+        """
         return abs(self.min_height - self.mean_height)
 
     @property
     def max_peak(self):
+        """
+        Returns the height of the highest valley in nm. A peak is defined
+        relative to the mean height (typically 0nm).
+        """
         return self.max_height - self.mean_height
 
     @property
     def mean_valley(self):
+        """
+        Returns the depth of the average valley in nm. A valley is defined
+        relative to the mean height (typically 0nm).
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
+        """
         if 'mean_valley' not in self._cache:
             valley_elems = self.data[self.data < 0.0]
             self._cache['mean_valley'] = (
@@ -170,6 +202,13 @@ class NanoscopeImage(object):
 
     @property
     def mean_peak(self):
+        """
+        Returns the height of the average peak in nm. A peak is defined
+        relative to the mean height (typically 0nm).
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
+        """
         if 'mean_peak' not in self._cache:
             peak_elems = self.data[self.data > 0.0]
             self._cache['mean_peak'] = (
@@ -178,16 +217,32 @@ class NanoscopeImage(object):
 
     @property
     def mean_total_roughness(self):
+        """
+        Returns the mean total roughness in nm. This is defined as the
+        difference between the mean peak and valley.
+        """
         return self.mean_peak + self.mean_valley
 
     @property
     def min_height(self):
+        """
+        Returns the minimum height in the image in nm.
+
+        The value is calculated on first access and cached for later. Running
+        convert or flatten will force a recalculation on the next access.
+        """
         if 'min_height' not in self._cache:
             self._cache['min_height'] = np.min(self.data)
         return self._cache['min_height']
 
     @property
     def max_height(self):
+        """
+        Returns the maximum height in the image in nm.
+
+        The value is calculated on first access and cached for later. Running
+        conver or flatten will force a recalculation on the next access.
+        """
         if 'max_height' not in self._cache:
             self._cache['max_height'] = np.max(self.data)
         return self._cache['max_height']
