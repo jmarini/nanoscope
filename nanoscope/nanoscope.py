@@ -123,7 +123,8 @@ class NanoscopeFile(object):
             self.config['Sens. Zscan'],
             config['Bytes/pixel'],
             config['Z magnify'],
-            config['Z scale']
+            config['Z scale'],
+            config['Scan size'] * config['Scan size']
         )
         return self.images[image_type]
 

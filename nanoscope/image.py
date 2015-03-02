@@ -10,7 +10,7 @@ class NanoscopeImage(object):
     """
 
     def __init__(self, image_type, raw_data, sensitivity, bytes_per_pixel,
-                 magnify, scale):
+                 magnify, scale, scan_area):
         self.sensitivity = sensitivity
         self.bytes_per_pixel = bytes_per_pixel
         self.magnify = magnify
@@ -20,6 +20,7 @@ class NanoscopeImage(object):
         self.converted_data = None
         self.type = image_type
         self.height_scale = self.sensitivity * self.magnify * self.scale
+        self.scan_area = scan_area
 
         self._cache = {}
 
