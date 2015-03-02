@@ -247,12 +247,18 @@ class NanoscopeImage(object):
             self._cache['max_height'] = np.max(self.data)
         return self._cache['max_height']
 
-    def n_point_roughness(self, n=10):
+    def n_point_roughness(self, n=5):
         """
-        Returns the average roughness in nm, defined as the mean of the n/2
-        highest peaks and n/2 lowest valleys.
+        Returns the average roughness in nm, defined as the mean of the n
+        highest peaks and n lowest valleys.
+
+        :param n: The number of points to take from both peaks and valleys.
+        :returns: The average roughness of the n highest peaks and n lowest
+                  valleys, in nm.
         """
-        raise NotImplementedError()
+        peak_elems = np.sort(self.data[self.data > self.mean_height])[-n:]
+        valley_elems = np.sort(self.data[self.data < self.mean_height])[:n]
+        return np.mean(peak_elems + valley_elems)
 
     def peak_count(self, threshold=None):
         """
@@ -303,7 +309,7 @@ class NanoscopeImage(object):
     zrange = total_roughness
     Rpm = mean_peak
     Rvm = mean_valley
-    Rz = property(lambda self: self.n_point_roughness(n=10))
+    Rz = property(lambda self: self.n_point_roughness(n=5))
     Pc = property(lambda self: self.peak_count(self.mean_roughness))
     Pd = property(lambda self: self.peak_density(self.mean_roughness))
     HSC = property(lambda self: self.high_spot_count(self.mean_roughness))
