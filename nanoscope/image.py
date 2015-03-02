@@ -129,7 +129,7 @@ class NanoscopeImage(object):
     @property
     def mean_roughness(self):
         if 'mean_roughness' not in self._cache:
-            self._cache['mean_roughness'] = np.mean(self.data - self.mean_height)
+            self._cache['mean_roughness'] = np.mean(np.abs(self.data - self.mean_height))
         return self._cache['mean_roughness']
 
     @property

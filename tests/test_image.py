@@ -69,3 +69,13 @@ class TestNanoscopeImage(unittest.TestCase):
         expected = 4.325
         actual = self.height.rms_roughness
         self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_mean_height(self):
+        expected = 0.00
+        actual = self.height.mean_height
+        self.assertAlmostEqual(actual, expected, delta=1e-4)
+
+    def test_mean_roughness(self):
+        expected = 3.433
+        actual = self.height.mean_roughness
+        self.assertAlmostEqual(actual, expected, delta=0.001)
