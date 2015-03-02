@@ -60,16 +60,6 @@ class TestNanoscopeImage(unittest.TestCase):
                         msg='@ ({0}, {1}) '
                             '0x{2:X}'.format(i, j, self.get_loc(i, j)))
 
-    def test_total_roughness(self):
-        expected = 27.397
-        actual = self.height.total_roughness
-        self.assertAlmostEqual(actual, expected, delta=0.001)
-
-    def test_rms_roughness(self):
-        expected = 4.325
-        actual = self.height.rms_roughness
-        self.assertAlmostEqual(actual, expected, delta=0.001)
-
     def test_mean_height(self):
         expected = 0.00
         actual = self.height.mean_height
@@ -78,4 +68,49 @@ class TestNanoscopeImage(unittest.TestCase):
     def test_mean_roughness(self):
         expected = 3.433
         actual = self.height.mean_roughness
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_rms_roughness(self):
+        expected = 4.325
+        actual = self.height.rms_roughness
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_max_peak(self):
+        expected = 14.478
+        actual = self.height.max_peak
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_max_valley(self):
+        expected = 12.918
+        actual = self.height.max_valley
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_total_roughness(self):
+        expected = self.height.max_peak + self.height.max_valley
+        actual = self.height.total_roughness
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_mean_peak(self):
+        expected = 3.346
+        actual = self.height.mean_peak
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_mean_valley(self):
+        expected = 3.525
+        actual = self.height.mean_valley
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_min_height(self):
+        expected = -self.height.max_valley
+        actual = self.height.min_height
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_max_height(self):
+        expected = self.height.max_peak
+        actual = self.height.max_height
+        self.assertAlmostEqual(actual, expected, delta=0.001)
+
+    def test_mean_total_roughness(self):
+        expected = self.height.mean_peak + self.height.mean_valley
+        actual = self.height.mean_total_roughness
         self.assertAlmostEqual(actual, expected, delta=0.001)
