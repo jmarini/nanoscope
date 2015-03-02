@@ -293,3 +293,18 @@ class NanoscopeImage(object):
             for n, c in enumerate(reversed(coefficients))])
             for i in range(len(data))])
         return data - correction
+
+    Ra = mean_roughness
+    Rq = rms_roughness
+    rms = rms_roughness
+    Rp = max_peak
+    Rv = max_valley
+    Rt = total_roughness
+    zrange = total_roughness
+    Rpm = mean_peak
+    Rvm = mean_valley
+    Rz = property(lambda self: self.n_point_roughness(n=10))
+    Pc = property(lambda self: self.peak_count(self.mean_roughness))
+    Pd = property(lambda self: self.peak_density(self.mean_roughness))
+    HSC = property(lambda self: self.high_spot_count(self.mean_roughness))
+    LSC = property(lambda self: self.low_spot_count(self.mean_roughness))
