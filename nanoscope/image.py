@@ -194,7 +194,7 @@ class NanoscopeImage(object):
         convert or flatten will force a recalculation on the next access.
         """
         if 'mean_valley' not in self._cache:
-            valley_elems = self.data[self.data < 0.0]
+            valley_elems = self.data[self.data < self.mean_height]
             self._cache['mean_valley'] = (
                 np.sum(np.abs(
                     valley_elems - self.mean_height)) / valley_elems.size)
@@ -210,7 +210,7 @@ class NanoscopeImage(object):
         convert or flatten will force a recalculation on the next access.
         """
         if 'mean_peak' not in self._cache:
-            peak_elems = self.data[self.data > 0.0]
+            peak_elems = self.data[self.data > self.mean_height]
             self._cache['mean_peak'] = (
                 np.sum(peak_elems - self.mean_height) / peak_elems.size)
         return self._cache['mean_peak']
