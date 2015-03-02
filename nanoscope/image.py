@@ -247,6 +247,45 @@ class NanoscopeImage(object):
             self._cache['max_height'] = np.max(self.data)
         return self._cache['max_height']
 
+    def n_point_roughness(self, n=10):
+        """
+        Returns the average roughness in nm, defined as the mean of the n/2
+        highest peaks and n/2 lowest valleys.
+        """
+        raise NotImplementedError()
+
+    def peak_count(self, threshold=None):
+        """
+        Calculates the total number of peaks and valleys in the image. A peak
+        or valley is defined as any feature that exceeds the provided threshold.
+
+        :param threshold: The threshold to use for defining a peak or valley.
+                          Defaults to the mean roughness (Ra).
+        :returns: The total number of peaks and valleys in the image.
+        """
+        threshold = threshold or self.mean_roughness
+        return self.data[np.abs(self.data) >= abs(threshold)].size
+
+    def peak_density(self, threshold=None):
+        """
+        Calclulates the number of peaks or valleys per unit area in the image,
+        with units of peaks per square μm. A peak or valley is defined as any
+        feature that exceeds the provided threshold.
+
+        :param threshold: The threshold to use for defining a peak or valley.
+                          Defaults to the mean roughness (Ra).
+        :returns: The number of peaks and valleys in the image per square μm.
+        """
+        return self.peak_count(threshold) / self.scan_area
+
+    def high_spot_count(self, threshold=None):
+        threshold = threshold or self.mean_roughness
+        return self.data[self.data >= threshold].size
+
+    def low_spot_count(self, threshold=None):
+        threshold = threshold or self.mean_roughness
+        return self.data[self.data <= threshold].size
+
     def _flatten_scanline(self, data, order=1):
         coefficients = np.polyfit(range(len(data)), data, order)
         correction = np.array(
