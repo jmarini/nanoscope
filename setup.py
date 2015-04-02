@@ -6,21 +6,43 @@ except ImportError:
     from distutils.core import setup
 from io import open
 from os import path
+from re import search, MULTILINE
 
-import nanoscope
+
+def read(filename, encoding='utf-8'):
+    base_dir = path.abspath(path.dirname(__file__))
+    with open(path.join(base_dir, filename), 'r', encoding=encoding) as f:
+        return f.read()
 
 
-base_dir = path.abspath(path.dirname(__file__))
+def find_version(filename, encoding='utf-8'):
+    """
+    Reads the version string from the specified file. It should be in the
+    format:
 
-with open(path.join(base_dir, 'README.rst'), 'r', encoding='utf-8') as f:
-    readme = f.read()
+    .. code-block:: python
+
+        __version__ = 'version-string'
+
+    Where version-string should be the version number.
+
+    Adapted from packaging.python.org
+    """
+    version_file = read(filename, encoding)
+    version_match = search(
+        r'^__version__\s+=\s+[\'"](?P<version>[^\'"]+)[\'"]',
+        version_file,
+        MULTILINE)
+    if version_match:
+        return version_match.group('version')
+    raise RuntimeError('Unable to find version string.')
 
 
 setup(
     name='nanoscope',
-    version=nanoscope.__version__,
+    version=find_version('nanoscope/__init__.py'),
     description='Library to parse and process of Nanoscope Dimension AFM files',
-    long_description=readme,
+    long_description=read('README.rst'),
     url='https://github.com/jmarini/nanoscope',
     author='Jonathan Marini',
     author_email='j.marini@ieee.org',
