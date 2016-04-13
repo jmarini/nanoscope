@@ -5,10 +5,10 @@
 
     Library to parse and process Nanoscope Dimension AFM files.
 
-    :copyright: (c) 2015 by Jonathan Marini
+    :copyright: (c) 2016 by Jonathan Marini
     :license: MIT, see LICENSE for details
 """
 
-__version__ = '0.10.1'
+__version__ = '0.10.2'
 
 from .nanoscope import read
