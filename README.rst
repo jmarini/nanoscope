@@ -62,7 +62,7 @@ The various image types can also be looped through using an iterator when proces
 
 The processing steps can also be called individually if needed
 
-.. code::python
+.. code:: python
 
     import nanoscope
     p = nanoscope.read('./file.000')
