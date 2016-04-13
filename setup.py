@@ -49,7 +49,7 @@ setup(
     packages=['nanoscope'],
     install_requires=['numpy', 'six'],
     test_suite='tests',
-    classifiers=(
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
@@ -60,5 +60,5 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Topic :: Scientific/Engineering',
-    ),
+    ],
 )
