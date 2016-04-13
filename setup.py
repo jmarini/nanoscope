@@ -50,7 +50,7 @@ setup(
     install_requires=['numpy', 'six'],
     test_suite='tests',
     classifiers=(
-        'Development Status :: 5 - Beta',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
