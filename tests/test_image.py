@@ -60,6 +60,17 @@ class TestNanoscopeImage(unittest.TestCase):
                         msg='@ ({0}, {1}) '
                             '0x{2:X}'.format(i, j, self.get_loc(i, j)))
 
+    def test_colorize_invalid(self):
+        with self.assertRaises(ValueError,
+                               msg='Colortable 0 is not currently supported'):
+            self.height.colorize(colortable=0)
+
+    def test_reset_height_scale(self):
+        expected = self.height.height_scale * 2.0
+        self.height.scale *= 2.0
+        self.height.reset_height_scale()
+        self.assertEqual(expected, self.height.height_scale)
+
     def test_mean_height(self):
         expected = 0.00
         actual = self.height.mean_height

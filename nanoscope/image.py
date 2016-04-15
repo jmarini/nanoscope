@@ -8,6 +8,16 @@ class NanoscopeImage(object):
     """
     Holds the data associated with a Nanoscope image.
     """
+    supported_colortables = {
+        12: {
+            'r': (lambda p: np.clip(np.round(
+                  p * (10200 / 37) - (765 / 37)), 0, 255)),
+            'g': (lambda p: np.clip(np.round(
+                  p * (30600 / 73) - (11985 / 73)), 0, 255)),
+            'b': (lambda p: np.clip(np.round(
+                  p * (6800 / 9) - (4505 / 9)), 0, 255)),
+        },
+    }
 
     def __init__(self, image_type, raw_data, sensitivity, bytes_per_pixel,
                  magnify, scale, scan_area):
@@ -91,17 +101,11 @@ class NanoscopeImage(object):
                   ``Pillow.Image.fromarray``.
         :raises ValueError: If the colortable is not supported.
         """
-        if colortable != 12:
-            raise ValueError('Only colortable #12 is currently supported')
+        if colortable not in self.supported_colortables:
+            raise ValueError('Colortable {} is not '
+                             'currently supported'.format(colortable))
 
-        colors = {
-            'r': (lambda p: np.clip(np.round(
-                p * (10200 / 37) - (765 / 37)), 0, 255)),
-            'g': (lambda p: np.clip(np.round(
-                p * (30600 / 73) - (11985 / 73)), 0, 255)),
-            'b': (lambda p: np.clip(np.round(
-                p * (6800 / 9) - (4505 / 9)), 0, 255)),
-        }
+        colors = self.supported_colortables[colortable]
         get_color = (lambda v:
             np.array([colors[c]((v + (self.height_scale / 2)) /
                                 self.height_scale) for c in 'rgb']))
