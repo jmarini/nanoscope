@@ -10,7 +10,7 @@ from .image import NanoscopeImage
 from .parameter import parse_parameter
 
 
-def read(f, encoding='utf-8', header_only=False):
+def read(f, encoding='utf-8', header_only=False, check_version=True):
     """
     Reads the specified file, given as either a filename or an already opened
     file object. Passed file objects must be opened in binary mode. Meant as the
@@ -22,16 +22,18 @@ def read(f, encoding='utf-8', header_only=False):
                      to utf-8.
     :param header_only: Whether to read only the header of the file. Defaults to
                         False.
+    :param check_version: Whether to enforce version checking for known
+                          supported versions. Defaults to True.
     :returns: A NanoscopeFile object containing the image data.
     :raises OSError: If a passed file object is not opened in binary mode.
     """
     try:
         with io.open(f, 'rb') as file_obj:
-            images = NanoscopeFile(file_obj, encoding, header_only)
+            images = NanoscopeFile(file_obj, encoding, header_only, check_version)
     except TypeError:
         if 'b' not in f.mode:
             raise OSError('File must be opened in binary mode.')
-        images = NanoscopeFile(f, encoding, header_only)
+        images = NanoscopeFile(f, encoding, header_only, check_version)
     return images
 
 
@@ -39,14 +41,14 @@ class NanoscopeFile(object):
     """
     Handles reading and parsing Nanoscope files.
     """
-    supported_versions = ['0x05120130']
+    supported_versions = ['0x05120130',]
 
-    def __init__(self, file_object, encoding='utf-8', header_only=False):
+    def __init__(self, file_object, encoding='utf-8', header_only=False, check_version=True):
         self.images = {}
         self.config = {'_Images': {}}
         self.encoding = encoding
 
-        self._read_header(file_object)
+        self._read_header(file_object, check_version)
         if not header_only:
             for image_type in six.iterkeys(self.config['_Images']):
                 self._read_image_data(file_object, image_type)
@@ -76,14 +78,14 @@ class NanoscopeFile(object):
         for v in six.itervalues(self.images):
             yield v
 
-    def _read_header(self, file_object):
+    def _read_header(self, file_object, check_version=False):
         """
         Read the Nanoscope file header.
         """
         file_object.seek(0)
         for line in file_object:
             parameter = parse_parameter(line, self.encoding)
-            if not self._validate_version(parameter):
+            if not self._validate_version(parameter) and check_version:
                 raise ValueError(
                     'Unsupported file version {0}'.format(parameter.hard_value))
             if self._handle_parameter(parameter, file_object):
