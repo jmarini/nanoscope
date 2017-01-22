@@ -8,6 +8,7 @@ import six
 
 from .image import NanoscopeImage
 from .parameter import parse_parameter
+from .error import UnsupportedVersion, UnsupportedImageType, MissingImageData
 
 
 def read(f, encoding='cp1252', header_only=False, check_version=True):
@@ -88,8 +89,7 @@ class NanoscopeFile(object):
         for line in file_object:
             parameter = parse_parameter(line, self.encoding)
             if not self._validate_version(parameter) and check_version:
-                raise ValueError(
-                    'Unsupported file version {0}'.format(parameter.hard_value))
+                raise UnsupportedVersion(parameter.hard_value)
             if self._handle_parameter(parameter, file_object):
                 return
 
@@ -104,9 +104,9 @@ class NanoscopeFile(object):
         :raises ValueError: If the image_type indicated is not in the file
         """
         if image_type not in ['Height', 'Amplitude', 'AmplitudeError', 'Phase']:
-            raise ValueError('Unsupported image type {0}'.format(image_type))
+            raise UnsupportedImageType(image_type)
         if image_type not in self.config['_Images']:
-            raise ValueError('Image type {0} not in file.'.format(image_type))
+            raise MissingImageData(image_type)
 
         config = self.config['_Images'][image_type]
         data_offset = config['Data offset']

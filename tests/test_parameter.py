@@ -4,7 +4,7 @@ import unittest
 
 import six
 
-from nanoscope import parameter
+from nanoscope import parameter, error
 
 
 class TestStringDecoding(unittest.TestCase):
@@ -49,15 +49,15 @@ class TestStringDecoding(unittest.TestCase):
 class TestParameterParsing(unittest.TestCase):
 
     def test_empty_string(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(error.InvalidParameter):
             parameter.parse_parameter(r'')
 
     def test_empty_parameter_name(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(error.InvalidParameter):
             parameter.parse_parameter(r'\ ')
 
     def test_empty_parameter_value_no_trailing_space(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(error.InvalidParameter):
             parameter.parse_parameter(r'\param:')
 
     def test_empty_value_trailing_space(self):

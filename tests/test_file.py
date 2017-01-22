@@ -9,6 +9,7 @@ import numpy as np
 import six
 
 from nanoscope.nanoscope import NanoscopeFile, read
+from nanoscope import error
 
 
 class TestNanoscopeFile(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestNanoscopeFile(unittest.TestCase):
                      '\\Version: 0x00000000\n'
                      '\\*File list end\n')
         f = six.StringIO(file_data)
-        with self.assertRaises(ValueError,
+        with self.assertRaises(error.UnsupportedVersion,
                                msg='Unsupported file version 0x00000000'):
             p = NanoscopeFile(f)
         f.close()
@@ -402,7 +403,7 @@ class TestNanoscopeFile(unittest.TestCase):
             '\\*File list end\n'
         )
         f = six.StringIO(file_data)
-        with self.assertRaises(ValueError,
+        with self.assertRaises(error.UnsupportedImageType,
                                msg='Unsupported image type Invalid'):
             p = NanoscopeFile(f)
         f.close()
@@ -431,8 +432,8 @@ class TestNanoscopeFile(unittest.TestCase):
             '\\*File list end\n'
         )
         f = six.StringIO(file_data)
-        with self.assertRaises(ValueError,
-                               msg='Image type Amplitude not in file'):
+        with self.assertRaises(error.MissingImageData,
+                               msg='Image type Amplitude found in header but is missing data'):
             p = NanoscopeFile(f, header_only=True)
             p._read_image_data(f, 'Amplitude')
         f.close()

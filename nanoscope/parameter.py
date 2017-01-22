@@ -6,6 +6,8 @@ import re
 
 import six
 
+from .error import InvalidParameter
+
 
 __all__ = ['parse_parameter']
 
@@ -160,7 +162,7 @@ def parse_parameter(string, encoding='utf-8'):
                        r'(?:(?P<type>[VCS]) )?(?P<value>.*)')
     m = regex.match(string)
     if m is None:
-        raise ValueError('"{0}" is not a valid Ciao Parameter'.format(string))
+        raise InvalidParameter(string)
 
     parameter_type = m.group('type')
     value = m.group('value')
