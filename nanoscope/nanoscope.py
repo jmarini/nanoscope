@@ -10,7 +10,7 @@ from .image import NanoscopeImage
 from .parameter import parse_parameter
 
 
-def read(f, encoding='utf-8', header_only=False, check_version=True):
+def read(f, encoding='cp1252', header_only=False, check_version=True):
     """
     Reads the specified file, given as either a filename or an already opened
     file object. Passed file objects must be opened in binary mode. Meant as the
@@ -19,7 +19,7 @@ def read(f, encoding='utf-8', header_only=False, check_version=True):
     :param f: Filename of the file to read or an opened file object. File
               objects must be opened in binary mode.
     :param encoding: The encoding to use when reading the file header. Defaults
-                     to utf-8.
+                     to cp1252.
     :param header_only: Whether to read only the header of the file. Defaults to
                         False.
     :param check_version: Whether to enforce version checking for known
