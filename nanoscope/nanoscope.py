@@ -41,7 +41,7 @@ class NanoscopeFile(object):
     """
     Handles reading and parsing Nanoscope files.
     """
-    supported_versions = ['0x05120130',]
+    supported_versions = ['0x05120130', '0x09300201', ]
 
     def __init__(self, file_object, encoding='utf-8', header_only=False, check_version=True):
         self.images = {}
@@ -65,7 +65,9 @@ class NanoscopeFile(object):
         """
         Return the amplitude image if it exists, else ``None``.
         """
-        return self.images.get('Amplitude', None)
+        if 'Amplitude' in self.images:
+            return self.images.get('Amplitude', None)
+        return self.images.get('AmplitudeError', None)
 
     @property
     def phase(self):
@@ -101,7 +103,7 @@ class NanoscopeFile(object):
         :raises ValueError: If image_type is a nonsupported type
         :raises ValueError: If the image_type indicated is not in the file
         """
-        if image_type not in ['Height', 'Amplitude', 'Phase']:
+        if image_type not in ['Height', 'Amplitude', 'AmplitudeError', 'Phase']:
             raise ValueError('Unsupported image type {0}'.format(image_type))
         if image_type not in self.config['_Images']:
             raise ValueError('Image type {0} not in file.'.format(image_type))
@@ -119,16 +121,26 @@ class NanoscopeFile(object):
                                   count=number_points)
                    .reshape((number_lines, samples_per_line)))
 
+        sensitivity = self._get_config_fuzzy_key(self.config, ['Sens. Zscan', 'Sens. Zsens'])
+        scan_size = self._get_config_fuzzy_key(config, ['Scan size', 'Scan Size'])
+
         self.images[image_type] = NanoscopeImage(
             image_type,
             raw_data,
-            self.config['Sens. Zscan'],
+            sensitivity,
             config['Bytes/pixel'],
             config['Z magnify'],
             config['Z scale'],
-            config['Scan size'] * config['Scan size']
+            scan_size * scan_size,
         )
         return self.images[image_type]
+
+    def _get_config_fuzzy_key(self, config, keys):
+        for k in keys:
+            value = config.get(k, None)
+            if value is not None:
+                return value
+        raise KeyError
 
     def _validate_version(self, parameter):
         if parameter.type == 'H' or parameter.parameter != 'Version':
