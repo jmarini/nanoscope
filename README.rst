@@ -7,7 +7,7 @@ NanoScope AFM
 .. image:: https://coveralls.io/repos/jmarini/nanoscope/badge.svg
         :target: https://coveralls.io/r/jmarini/nanoscope
 
-Nanoscope is a library to handle parsing and processing of Veeco Nanoscope Dimension AFM files. Currently hard-coded to only work for version 0x05120130 since that is what I have access to for testing, but it will likely work on newer versions.
+Nanoscope is a library to handle parsing and processing of Veeco Nanoscope Dimension AFM files. Currently hard-coded to only work for version 0x05120130 and 0x09300201 since that is what I have access to for testing, but it will likely work on newer versions.
 
 
 Features
@@ -15,7 +15,7 @@ Features
 
 The current featureset includes:
 
-* Read raw Nanoscope files and image data (height, amplitude, phase)
+* Read raw Nanoscope files and image data (height, amplitude, phase, etc.)
 * Calculate standard summary information (RMS Roughness, Z-range, etc.)
 * Output the image in a Pillow-compatible format for saving
 * Data is cached after individual process steps to avoid unneeded reprocessing
@@ -47,7 +47,7 @@ An example of typical usage is shown below, including using Pillow to save the i
     pixels = p.height.colorize()
     Image.fromarray(pixels).save('file.png')
 
-Image types may also be accessed by name
+Arbitrary image types may also be accessed by name
 
 .. code::python
 
