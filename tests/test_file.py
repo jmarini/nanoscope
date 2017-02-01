@@ -379,35 +379,6 @@ class TestNanoscopeFile(unittest.TestCase):
         self.assertIn(p.height, images)
         self.assertIn(p.amplitude, images)
 
-    def test_read_invalid_image(self):
-        file_data = (
-            '\\*File list\n'
-            '\\Version: 0x05120130\n'
-            '\\Date: 10:27:26 AM Fri Oct 17 2014\n'
-            '\\Data length: 40960\n'
-            '\\*Ciao image list\n'
-            '\\Data offset: 40960\n'
-            '\\Data length: 524288\n'
-            '\\Bytes/pixel: 2\n'
-            '\\Samps/line: 512\n'
-            '\\Number of lines: 512\n'
-            '\\Aspect ratio: 1:1\n'
-            '\\Valid data start X: 0\n'
-            '\\Valid data start Y: 0\n'
-            '\\Valid data len X: 512\n'
-            '\\Valid data len Y: 512\n'
-            '\\@2:Image Data: S [Invalid] "Invalid"\n'
-            '\\@Z magnify: C [2:Z scale] 0.002639945 \n'
-            '\\@2:Z scale: V [Sens. Zscan] (0.006693481 V/LSB) 438.6572 V\n'
-            '\\@2:Z offset: V [Sens. Zscan] (0.006693481 V/LSB)       0 V\n'
-            '\\*File list end\n'
-        )
-        f = six.StringIO(file_data)
-        with self.assertRaises(error.UnsupportedImageType,
-                               msg='Unsupported image type Invalid'):
-            p = NanoscopeFile(f)
-        f.close()
-
     def test_read_image_not_in_file(self):
         file_data = (
             '\\*File list\n'

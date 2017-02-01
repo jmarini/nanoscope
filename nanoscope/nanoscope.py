@@ -8,7 +8,7 @@ import six
 
 from .image import NanoscopeImage
 from .parameter import parse_parameter
-from .error import UnsupportedVersion, UnsupportedImageType, MissingImageData
+from .error import UnsupportedVersion, MissingImageData
 
 
 def read(f, encoding='cp1252', header_only=False, check_version=True):
@@ -66,9 +66,7 @@ class NanoscopeFile(object):
         """
         Return the amplitude image if it exists, else ``None``.
         """
-        if 'Amplitude' in self.images:
-            return self.images.get('Amplitude', None)
-        return self.images.get('AmplitudeError', None)
+        return self.images.get('Amplitude', None)
 
     @property
     def phase(self):
@@ -76,6 +74,12 @@ class NanoscopeFile(object):
         Return the phase image if it exists, else ``None``.
         """
         return self.images.get('Phase', None)
+
+    def image(self, image_type):
+        """
+        Returns the specified image type if it exists, else ``None``.
+        """
+        return self.images.get(image_type, None)
 
     def __iter__(self):
         for v in six.itervalues(self.images):
@@ -103,8 +107,6 @@ class NanoscopeFile(object):
         :raises ValueError: If image_type is a nonsupported type
         :raises ValueError: If the image_type indicated is not in the file
         """
-        if image_type not in ['Height', 'Amplitude', 'AmplitudeError', 'Phase']:
-            raise UnsupportedImageType(image_type)
         if image_type not in self.config['_Images']:
             raise MissingImageData(image_type)
 

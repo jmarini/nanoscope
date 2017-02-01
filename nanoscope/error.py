@@ -17,16 +17,6 @@ class UnsupportedVersion(Error):
         return 'Unsupported file version {}'.format(self.version)
 
 
-class UnsupportedImageType(Error):
-    """Error for unsupported image types in file."""
-
-    def __init__(self, image):
-        self.image = image
-
-    def __str__(self):
-        return 'Unsupported image type {}'.format(self.image)
-
-
 class MissingImageData(Error):
     """Error for missing data for defined image in header."""
 
