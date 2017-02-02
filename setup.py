@@ -47,7 +47,7 @@ setup(
     author='Jonathan Marini',
     author_email='j.marini@ieee.org',
     packages=['nanoscope'],
-    install_requires=['numpy', 'six'],
+    install_requires=['numpy', 'six', 'astropy'],
     test_suite='tests',
     classifiers=[
         'Development Status :: 4 - Beta',
