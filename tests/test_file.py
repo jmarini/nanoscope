@@ -9,6 +9,7 @@ import numpy as np
 import six
 
 from nanoscope.nanoscope import NanoscopeFile, read
+from nanoscope.parameter import CiaoValue
 from nanoscope import error
 
 
@@ -137,8 +138,10 @@ class TestNanoscopeFile(unittest.TestCase):
                     'Tip x width correction factor sigma': 1,
                     'Tip y width correction factor sigma': 1,
                     'Z magnify': 0.002639945,
-                    'Z scale': 438.6572,
-                    'Z offset': 0,
+                    'Z scale': CiaoValue('Z scale', 'Sens. Zscan',
+                                         '0.006693481 V/LSB', '438.6572 V'),
+                    'Z offset': CiaoValue('Z offset', 'Sens. Zscan',
+                                          '0.006693481 V/LSB', '0 V'),
                     'Image Data': 'Height',
                 },
             },
@@ -224,9 +227,11 @@ class TestNanoscopeFile(unittest.TestCase):
                     'Tip x width correction factor sigma': 1,
                     'Tip y width correction factor sigma': 1,
                     'Z magnify': 0.002639945,
-                    'Z scale': 438.6572,
-                    'Z offset': 0,
-                    'Image Data': 'Height'
+                    'Z scale': CiaoValue('Z scale', 'Sens. Zscan',
+                                         '0.006693481 V/LSB', '438.6572 V'),
+                    'Z offset': CiaoValue('Z offset', 'Sens. Zscan',
+                                          '0.006693481 V/LSB', '0 V'),
+                    'Image Data': 'Height',
                 },
                 'Amplitude': {
                     'Data offset': 565248,
@@ -252,8 +257,10 @@ class TestNanoscopeFile(unittest.TestCase):
                     'Tip x width correction factor sigma': 1,
                     'Tip y width correction factor sigma': 1,
                     'Z magnify': 0.4615211,
-                    'Z scale': 0.2166748,
-                    'Z offset': 0,
+                    'Z scale': CiaoValue('Z scale', 'Sens. Amplitude',
+                                         '0.0003051758 V/LSB', '0.2166748 V'),
+                    'Z offset': CiaoValue('Z offset', 'Sens. Amplitude',
+                                          '0.0003051758 V/LSB', '0 V'),
                     'Image Data': 'Amplitude',
                 },
             },
@@ -352,10 +359,12 @@ class TestNanoscopeFile(unittest.TestCase):
 
     def test_height_scale(self):
         p = read('./tests/files/full_multiple_images.txt', encoding='cp1252')
-        sensitivity = p.config['Sens. Zscan']
-        magnify = p.config['_Images']['Height']['Z magnify']
         scale = p.config['_Images']['Height']['Z scale']
-        self.assertAlmostEqual(15.0, sensitivity * magnify * scale, delta=0.01)
+        sensitivity = p.config[scale.soft_scale]
+        magnify = p.config['_Images']['Height']['Z magnify']
+        self.assertAlmostEqual(15.0,
+                               magnify * (sensitivity * scale.hard_value).value,
+                               delta=0.01)
 
     def test_read_height_data_multiple_images(self):
         csv_data = np.loadtxt('./tests/files/reference_raw.csv',

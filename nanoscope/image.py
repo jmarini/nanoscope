@@ -19,17 +19,18 @@ class NanoscopeImage(object):
         },
     }
 
-    def __init__(self, image_type, raw_data, sensitivity, bytes_per_pixel,
-                 magnify, scale, scan_area):
-        self.sensitivity = sensitivity
+    def __init__(self, image_type, raw_data, bytes_per_pixel, magnify,
+                 scale, offset, scan_area):
+        self.unit = scale.unit.to_string()
         self.bytes_per_pixel = bytes_per_pixel
         self.magnify = magnify
-        self.scale = scale
         self.raw_data = raw_data
         self.flat_data = None
         self.converted_data = None
         self.type = image_type
-        self.height_scale = self.sensitivity * self.magnify * self.scale
+        self.scale = scale.value
+        self.offset = offset.value
+        self.height_scale = self.scale * magnify
         self.scan_area = scan_area
 
         self._cache = {}
@@ -85,7 +86,7 @@ class NanoscopeImage(object):
         """
         if self.flat_data is None:
             self.flat_data = self.raw_data
-        value = self.sensitivity * self.scale / pow(2, 8 * self.bytes_per_pixel)
+        value = self.scale / pow(2, 8 * self.bytes_per_pixel)
         self.converted_data = self.flat_data * value
         self._cache.clear()
         return self
@@ -123,7 +124,7 @@ class NanoscopeImage(object):
         """
         Resets the height scale to the original value from the file.
         """
-        self.height_scale = self.sensitivity * self.magnify * self.scale
+        self.height_scale = self.magnify * self.scale
 
     @property
     def mean_height(self):

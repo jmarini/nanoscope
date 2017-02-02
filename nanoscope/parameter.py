@@ -5,6 +5,7 @@ import datetime
 import re
 
 import six
+from astropy import units as u
 
 from .error import InvalidParameter
 
@@ -25,6 +26,16 @@ class CiaoParameter(object):
     def __str__(self):
         return '{0}: {1}'.format(self.parameter, self.hard_value)
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        return (self.parameter == other.parameter and
+                self.hard_value == other.hard_value)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def _parse_value(self, value):
         """
         Try to parse and return the value as the following values:
@@ -43,7 +54,7 @@ class CiaoParameter(object):
         except:
             try:
                 split_value = value.strip().split(' ')[0]
-                if split_value == '' or split_value == 'None':
+                if split_value in ('', 'None'):
                     return None
             except AttributeError:
                 return value
@@ -64,13 +75,33 @@ class CiaoValue(CiaoParameter):
 
     def __init__(self, parameter, soft_scale, hard_scale, hard_value):
         self.parameter = parameter
-        self.soft_scale = self._parse_value(soft_scale)
+        self.soft_scale = super(CiaoValue, self)._parse_value(soft_scale)
         self.hard_scale = self._parse_value(hard_scale)
         self.hard_value = self._parse_value(hard_value)
 
     def __str__(self):
         return '{0}: [{1}] ({2}) {3}'.format(self.parameter, self.soft_scale,
                                              self.hard_scale, self.hard_value)
+
+    def __eq__(self, other):
+        return (self.parameter == other.parameter and
+                self.soft_scale == other.soft_scale and
+                self.hard_scale == other.hard_scale and
+                self.hard_value == other.hard_value)
+
+    def _parse_value(self, value):
+        if value is None:
+            return None
+
+        try:
+            return datetime.datetime.strptime(value, '%I:%M:%S %p %a %b %d %Y')
+        except:
+            if value.strip() in ('', 'None'):
+                return None
+            try:
+                return u.Quantity(value.strip())
+            except (ValueError, TypeError):
+                return value
 
 
 class CiaoScale(CiaoParameter):
@@ -87,6 +118,11 @@ class CiaoScale(CiaoParameter):
     def __str__(self):
         return '{0}: [{1}] {2}'.format(self.parameter, self.soft_scale,
                                        self.hard_value)
+
+    def __eq__(self, other):
+        return (self.parameter == other.parameter and
+                self.soft_scale == other.soft_scale and
+                self.hard_value == other.hard_value)
 
 
 class CiaoSelect(CiaoParameter):
@@ -105,6 +141,11 @@ class CiaoSelect(CiaoParameter):
                                          self.internal,
                                          self.external)
 
+    def __eq__(self, other):
+        return (self.parameter == other.parameter and
+                self.internal == other.internal and
+                self.external == other.external)
+
 
 class CiaoSectionHeader(CiaoParameter):
     """
@@ -117,6 +158,9 @@ class CiaoSectionHeader(CiaoParameter):
 
     def __str__(self):
         return self.header
+
+    def __eq__(self, other):
+        return self.header == other.header
 
 
 def decode(string, encoding='utf-8'):

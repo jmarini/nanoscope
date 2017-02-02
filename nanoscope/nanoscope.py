@@ -123,19 +123,24 @@ class NanoscopeFile(object):
                                   count=number_points)
                    .reshape((number_lines, samples_per_line)))
 
-        sensitivity = self._get_config_fuzzy_key(self.config, ['Sens. Zscan', 'Sens. Zsens'])
         scan_size = self._get_config_fuzzy_key(config, ['Scan size', 'Scan Size'])
 
         self.images[image_type] = NanoscopeImage(
             image_type,
             raw_data,
-            sensitivity,
             config['Bytes/pixel'],
             config['Z magnify'],
-            config['Z scale'],
+            self._get_sensitivity_value(image_type, 'Z scale'),
+            self._get_sensitivity_value(image_type, 'Z offset'),
             scan_size * scan_size,
         )
         return self.images[image_type]
+
+    def _get_sensitivity_value(self, image_type, key):
+        parameter = self.config['_Images'][image_type][key]
+        sensitivity = self.config[parameter.soft_scale]
+        value = parameter.hard_value
+        return sensitivity * value
 
     def _get_config_fuzzy_key(self, config, keys):
         for k in keys:
@@ -155,6 +160,11 @@ class NanoscopeFile(object):
                 return True
             if parameter.header == 'Ciao image list':
                 return self._handle_parameter(self._read_image_header(f), f)
+        elif parameter.type == 'V':
+            if not parameter.soft_scale and not parameter.hard_scale:
+                self.config[parameter.parameter] = parameter.hard_value
+            else:
+                self.config[parameter.parameter] = parameter
         elif parameter.type != 'S':
             self.config[parameter.parameter] = parameter.hard_value
         return False
@@ -165,9 +175,14 @@ class NanoscopeFile(object):
             parameter = parse_parameter(line, self.encoding)
             if parameter.type == 'H':
                 return parameter
-            if parameter.type == 'S':
+            elif parameter.type == 'S':
                 if parameter.parameter == 'Image Data':
                     image_config['Image Data'] = parameter.internal
                     self.config['_Images'][parameter.internal] = image_config
+            elif parameter.type == 'V':
+                if not parameter.soft_scale and not parameter.hard_scale:
+                    image_config[parameter.parameter] = parameter.hard_value
+                else:
+                    image_config[parameter.parameter] = parameter
             else:
                 image_config[parameter.parameter] = parameter.hard_value
