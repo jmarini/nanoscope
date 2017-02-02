@@ -85,9 +85,15 @@ class NanoscopeFile(object):
         for v in six.itervalues(self.images):
             yield v
 
-    def _read_header(self, file_object, check_version=False):
+    def _read_header(self, file_object, check_version=True):
         """
         Read the Nanoscope file header.
+
+        :param file_object: Opened file
+        :param check_version: Whether to enforce version checking for known
+                              supported versions. Defaults to True.
+        :raises UnsupportedVersion: If the version is not supported and version
+                                    checking is enabled.
         """
         file_object.seek(0)
         for line in file_object:
@@ -102,10 +108,8 @@ class NanoscopeFile(object):
         Read the raw data for the specified image type if it is in the file.
 
         :param image_type: String indicating which image type to read.
-                           Only accepts 'Height', 'Amplitude', and 'Phase'
         :returns: A NanoscopeImage instance of the specified type
-        :raises ValueError: If image_type is a nonsupported type
-        :raises ValueError: If the image_type indicated is not in the file
+        :raises MissingImageData: If the image_type indicated is not in the file
         """
         if image_type not in self.config['_Images']:
             raise MissingImageData(image_type)
