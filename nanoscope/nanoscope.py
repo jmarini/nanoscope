@@ -59,27 +59,33 @@ class NanoscopeFile(object):
         """
         Return the height image if it exists, else ``None``.
         """
-        return self.images.get('Height', None)
+        return self.image('Height')
 
     @property
     def amplitude(self):
         """
         Return the amplitude image if it exists, else ``None``.
         """
-        return self.images.get('Amplitude', None)
+        return self.image('Amplitude')
 
     @property
     def phase(self):
         """
         Return the phase image if it exists, else ``None``.
         """
-        return self.images.get('Phase', None)
+        return self.image('Phase')
 
     def image(self, image_type):
         """
         Returns the specified image type if it exists, else ``None``.
         """
         return self.images.get(image_type, None)
+
+    def image_types(self):
+        """
+        Returns a list of names for all image types.
+        """
+        return list(self.images.keys())
 
     def __iter__(self):
         for v in six.itervalues(self.images):

@@ -47,7 +47,7 @@ An example of typical usage is shown below, including using Pillow to save the i
     pixels = p.height.colorize()
     Image.fromarray(pixels).save('file.png')
 
-Arbitrary image types may also be accessed by name
+Arbitrary image types may also be accessed by name (case sensitive) and the name of all image types may be queried
 
 .. code::python
 
@@ -55,6 +55,8 @@ Arbitrary image types may also be accessed by name
 
     p = nanoscope.read('./file.000')
     p.image('ZSensor').process()
+
+    print(p.image_types())
 
 
 The various image types can also be looped through using an iterator when processing, and the settings of the processing steps customized
