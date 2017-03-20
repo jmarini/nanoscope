@@ -42,7 +42,7 @@ class NanoscopeFile(object):
     """
     Handles reading and parsing Nanoscope files.
     """
-    supported_versions = ['0x05120130', '0x09300201', ]
+    supported_versions = ['0x05120000', '0x05120130', '0x09300201', ]
 
     def __init__(self, file_object, encoding='utf-8', header_only=False, check_version=True):
         self.images = {}
