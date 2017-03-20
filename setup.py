@@ -38,6 +38,13 @@ def find_version(filename, encoding='utf-8'):
     raise RuntimeError('Unable to find version string.')
 
 
+requirements = [
+    'numpy>=1.9,<1.11',
+    'six>=1.8,<2',
+    'astropy>=1.3,<2.0',
+]
+
+
 setup(
     name='nanoscope',
     version=find_version('nanoscope/__init__.py'),
@@ -45,9 +52,9 @@ setup(
     long_description=read('README.rst'),
     url='https://github.com/jmarini/nanoscope',
     author='Jonathan Marini',
-    author_email='j.marini@ieee.org',
+    author_email='jonathan.r.marini@gmail.com',
     packages=['nanoscope'],
-    install_requires=['numpy', 'six', 'astropy'],
+    install_requires=requirements,
     test_suite='tests',
     classifiers=[
         'Development Status :: 4 - Beta',
