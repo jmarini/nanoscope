@@ -115,6 +115,7 @@ class TestNanoscopeFile(unittest.TestCase):
             'Engage Y Pos': -42151.3,
             '_Images': {
                 'Height': {
+                    'Description': 'Height',
                     'Data offset': 40960,
                     'Data length': 524288,
                     'Bytes/pixel': 2,
@@ -204,6 +205,7 @@ class TestNanoscopeFile(unittest.TestCase):
             'Engage Y Pos': -42151.3,
             '_Images': {
                 'Height': {
+                    'Description': 'Height',
                     'Data offset': 40960,
                     'Data length': 524288,
                     'Bytes/pixel': 2,
@@ -234,6 +236,7 @@ class TestNanoscopeFile(unittest.TestCase):
                     'Image Data': 'Height',
                 },
                 'Amplitude': {
+                    'Description': 'Amplitude',
                     'Data offset': 565248,
                     'Data length': 524288,
                     'Bytes/pixel': 2,

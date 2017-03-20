@@ -20,7 +20,7 @@ class NanoscopeImage(object):
     }
 
     def __init__(self, image_type, raw_data, bytes_per_pixel, magnify,
-                 scale, offset, scan_area):
+                 scale, offset, scan_area, description):
         self.unit = scale.unit.to_string()
         self.bytes_per_pixel = bytes_per_pixel
         self.magnify = magnify
@@ -32,6 +32,7 @@ class NanoscopeImage(object):
         self.offset = offset.value
         self.height_scale = self.scale * magnify
         self.scan_area = scan_area
+        self.description = description
 
         self._cache = {}
 

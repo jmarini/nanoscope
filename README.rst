@@ -56,7 +56,8 @@ Arbitrary image types may also be accessed by name (case sensitive) and the name
     p = nanoscope.read('./file.000')
     p.image('ZSensor').process()
 
-    print(p.image_types())
+    print(p.image_types())  # List of keys for each image type
+    print(p.describe_images())  # List of tuples (key, info) for each image type
 
 
 The various image types can also be looped through using an iterator when processing, and the settings of the processing steps customized

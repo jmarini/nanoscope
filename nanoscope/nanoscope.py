@@ -87,6 +87,12 @@ class NanoscopeFile(object):
         """
         return list(self.images.keys())
 
+    def describe_images(self):
+        """
+        Returns a list of tuples (key, info) describing the image types.
+        """
+        return [(k, self.image(k).description) for k in self.image_types()]
+
     def __iter__(self):
         for v in six.itervalues(self.images):
             yield v
@@ -143,6 +149,7 @@ class NanoscopeFile(object):
             self._get_sensitivity_value(image_type, 'Z scale'),
             self._get_sensitivity_value(image_type, 'Z offset'),
             scan_size * scan_size,
+            config['Description'],
         )
         return self.images[image_type]
 
@@ -188,6 +195,7 @@ class NanoscopeFile(object):
             elif parameter.type == 'S':
                 if parameter.parameter == 'Image Data':
                     image_config['Image Data'] = parameter.internal
+                    image_config['Description'] = parameter.external
                     self.config['_Images'][parameter.internal] = image_config
             elif parameter.type == 'V':
                 if not parameter.soft_scale and not parameter.hard_scale:
