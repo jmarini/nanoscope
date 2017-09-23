@@ -99,7 +99,7 @@ class CiaoValue(CiaoParameter):
             if value.strip() in ('', 'None'):
                 return None
             try:
-                return u.Quantity(value.strip())
+                return u.Quantity(value.strip().replace('º', 'deg'))
             except (ValueError, TypeError):
                 return value
 
